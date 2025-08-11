@@ -5,9 +5,9 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/ruvo-player",
-        "installCommand": "npm ci --only=production",
-        "buildCommand": "npm run build"
+        "distDir": "dist",
+        "installCommand": "npm ci",
+        "buildCommand": "npm run build:vercel"
       }
     }
   ],
