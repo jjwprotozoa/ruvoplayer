@@ -1,0 +1,54 @@
+# Development files
+node_modules/
+.git/
+.github/
+.husky/
+.vscode/
+.devcontainer/
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Test files
+e2e/
+*.spec.ts
+*.test.ts
+playwright.config.ts
+jest.config.js
+
+# Documentation
+*.md
+docs/
+CHANGELOG.md
+API_SETUP.md
+RESPONSIVE_DESIGN_GUIDE.md
+
+# Development scripts
+start-local.ps1
+start-api.bat
+start-api.ps1
+
+# Source maps and development files
+*.map
+*.tsbuildinfo
+
+# Environment files (except production)
+.env.local
+.env.development
+.env.test
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
