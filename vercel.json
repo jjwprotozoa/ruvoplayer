@@ -1,5 +1,26 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/ruvo-player",
+        "installCommand": "npm ci --only=production",
+        "buildCommand": "npm run build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
   "functions": {
     "api/parse.js": {
       "maxDuration": 30
@@ -8,27 +29,7 @@
       "maxDuration": 30
     }
   },
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/api/parse",
-      "dest": "/api/parse.js"
-    },
-    {
-      "src": "/api/xtream",
-      "dest": "/api/xtream.js"
-    }
-  ],
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/ruvo-player"
-      }
-    }
-  ]
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
