@@ -1,121 +1,198 @@
-<form [formGroup]="form">
-    <div class="form-header">
-        <h3>📺 Add IPTV Playlist</h3>
-        <p class="form-subtitle">Enter your IPTV provider credentials to access live TV channels</p>
+<div class="smart-login-container">
+    <!-- Login Mode Selection -->
+    <div class="login-mode-selector">
+        <mat-button-toggle-group [(value)]="loginMode" class="login-mode-tabs">
+            <mat-button-toggle value="m3u-link" class="login-mode-tab">
+                <mat-icon>link</mat-icon>
+                M3U Link (Auto-detect)
+            </mat-button-toggle>
+            <mat-button-toggle value="manual" class="login-mode-tab">
+                <mat-icon>edit</mat-icon>
+                Manual Xtream Login
+            </mat-button-toggle>
+        </mat-button-toggle-group>
     </div>
 
-    <mat-form-field class="full-width">
-        <mat-label for="title">Playlist Name</mat-label>
-        <input 
-            matInput 
-            type="text" 
-            id="title" 
-            formControlName="title" 
-            placeholder="My IPTV Playlist"
-        />
-        <mat-hint>Give your playlist a memorable name</mat-hint>
-    </mat-form-field>
+    <!-- M3U Link Input Mode -->
+    @if (loginMode === 'm3u-link') {
+        <div class="m3u-link-section">
+            <div class="form-header">
+                <h3>🔗 M3U Link Import</h3>
+                <p class="form-subtitle">Paste your M3U playlist link and we'll extract the credentials automatically</p>
+            </div>
 
-    <mat-form-field class="full-width" subscriptSizing="dynamic">
-        <mat-label for="serverUrl">Server URL</mat-label>
-        <input
-            matInput
-            type="text"
-            id="serverUrl"
-            formControlName="serverUrl"
-            (input)="extractParams(form.value.serverUrl)"
-            placeholder="http://your-server.com or https://your-server.com"
-        />
-        <mat-hint>Enter your IPTV server URL (must include http:// or https://)</mat-hint>
-        <mat-error>{{ 'SETTINGS.EPG_URL_ERROR' | translate }}</mat-error>
-    </mat-form-field>
+            <mat-form-field class="full-width">
+                <mat-label for="m3uLink">M3U Playlist Link</mat-label>
+                <input 
+                    matInput 
+                    type="text" 
+                    id="m3uLink" 
+                    [(ngModel)]="m3uLink" 
+                    placeholder="http://ruvoplay.online/get.php?username=XXXX&password=YYYY&type=m3u_plus&output=ts"
+                />
+                <mat-hint>Paste your complete M3U playlist URL</mat-hint>
+            </mat-form-field>
 
-    <mat-form-field class="full-width">
-        <mat-label for="username">Username</mat-label>
-        <input 
-            matInput 
-            type="text" 
-            id="username" 
-            formControlName="username" 
-            placeholder="your_username"
-        />
-        <mat-hint>Your IPTV account username</mat-hint>
-    </mat-form-field>
+            <div class="m3u-actions">
+                <button 
+                    type="button" 
+                    mat-raised-button 
+                    color="primary"
+                    [disabled]="!m3uLink"
+                    (click)="extractFromM3ULink(m3uLink)"
+                    class="extract-btn"
+                >
+                    <mat-icon>auto_fix_high</mat-icon>
+                    Extract Credentials
+                </button>
+                
+                <button 
+                    type="button" 
+                    mat-stroked-button
+                    (click)="fillExample('ruvoplay')"
+                    class="example-btn"
+                >
+                    <mat-icon>lightbulb</mat-icon>
+                    Try Example
+                </button>
+            </div>
 
-    <mat-form-field class="full-width">
-        <mat-label for="password">Password</mat-label>
-        <input 
-            matInput 
-            type="password" 
-            id="password" 
-            formControlName="password" 
-            placeholder="your_password"
-        />
-        <mat-hint>Your IPTV account password</mat-hint>
-    </mat-form-field>
-
-    <div class="quick-fill-section">
-        <h4>💡 Quick Fill Examples</h4>
-        <div class="quick-fill-buttons">
-            <button 
-                type="button" 
-                mat-stroked-button 
-                (click)="fillExample('ruvoplay')"
-                class="quick-fill-btn"
-            >
-                Ruvo Play
-            </button>
-            <button 
-                type="button" 
-                mat-stroked-button 
-                (click)="fillExample('iptv')"
-                class="quick-fill-btn"
-            >
-                Generic IPTV
-            </button>
+            <div class="m3u-info">
+                <h4>💡 How it works:</h4>
+                <ul>
+                    <li>Paste your M3U playlist link</li>
+                    <li>We'll extract server URL, username, and password</li>
+                    <li>Automatically populate the Xtream login form</li>
+                    <li>Test connection and add your playlist</li>
+                </ul>
+            </div>
         </div>
-    </div>
+    }
 
-    <div class="button-row">
-        <button
-            mat-button
-            type="button"
-            [disabled]="!form.valid || isTestingConnection"
-            (click)="testConnection()"
-            class="test-btn"
-        >
-            <mat-icon>wifi_tethering</mat-icon>
-            {{ isTestingConnection ? 'Testing...' : 'Test Connection' }}
-        </button>
-        <button
-            mat-raised-button
-            type="submit"
-            [disabled]="!form.valid || isTestingConnection"
-            (click)="addPlaylist()"
-            color="primary"
-            class="add-btn"
-        >
-            <mat-icon>add</mat-icon>
-            {{ 'HOME.XTREAM_PLAYLIST.ADD' | translate }}
-        </button>
-    </div>
+    <!-- Manual Xtream Login Mode -->
+    @if (loginMode === 'manual') {
+        <form [formGroup]="form">
+            <div class="form-header">
+                <h3>📺 Manual Xtream Login</h3>
+                <p class="form-subtitle">Enter your IPTV provider credentials manually</p>
+            </div>
 
-    @if (connectionStatus){
-        <div class="connection-status">
-            <mat-icon [class]="getStatusClass()">
-                {{ getStatusIcon() }}
-            </mat-icon>
-            <span [class]="getStatusClass()">{{ getStatusMessage() }}</span>
-        </div>
+            <mat-form-field class="full-width">
+                <mat-label for="title">Playlist Name</mat-label>
+                <input 
+                    matInput 
+                    type="text" 
+                    id="title" 
+                    formControlName="title" 
+                    placeholder="My IPTV Playlist"
+                />
+                <mat-hint>Give your playlist a memorable name</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="full-width" subscriptSizing="dynamic">
+                <mat-label for="serverUrl">Server URL</mat-label>
+                <input
+                    matInput
+                    type="text"
+                    id="serverUrl"
+                    formControlName="serverUrl"
+                    (input)="extractParams(form.value.serverUrl)"
+                    placeholder="http://your-server.com or https://your-server.com"
+                />
+                <mat-hint>Enter your IPTV server URL (must include http:// or https://)</mat-hint>
+                <mat-error>{{ 'SETTINGS.EPG_URL_ERROR' | translate }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label for="username">Username</mat-label>
+                <input 
+                    matInput 
+                    type="text" 
+                    id="username" 
+                    formControlName="username" 
+                    placeholder="your_username"
+                />
+                <mat-hint>Your IPTV account username</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label for="password">Password</mat-label>
+                <input 
+                    matInput 
+                    type="password" 
+                    id="password" 
+                    formControlName="password" 
+                    placeholder="your_password"
+                />
+                <mat-hint>Your IPTV account password</mat-hint>
+            </mat-form-field>
+
+            <div class="quick-fill-section">
+                <h4>💡 Quick Fill Examples</h4>
+                <div class="quick-fill-buttons">
+                    <button 
+                        type="button" 
+                        mat-stroked-button 
+                        (click)="fillExample('ruvoplay')"
+                        class="quick-fill-btn"
+                    >
+                        Ruvo Play
+                    </button>
+                    <button 
+                        type="button" 
+                        mat-stroked-button 
+                        (click)="fillExample('iptv')"
+                        class="quick-fill-btn"
+                    >
+                        Generic IPTV
+                    </button>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button
+                    mat-button
+                    type="button"
+                    [disabled]="!form.valid || isTestingConnection"
+                    (click)="testConnection()"
+                    class="test-btn"
+                >
+                    <mat-icon>wifi_tethering</mat-icon>
+                    {{ isTestingConnection ? 'Testing...' : 'Test Connection' }}
+                </button>
+                <button
+                    mat-raised-button
+                    type="submit"
+                    [disabled]="!form.valid || isTestingConnection"
+                    (click)="addPlaylist()"
+                    color="primary"
+                    class="add-btn"
+                >
+                    <mat-icon>add</mat-icon>
+                    {{ 'HOME.XTREAM_PLAYLIST.ADD' | translate }}
+                </button>
+            </div>
+
+            @if (connectionStatus){
+                <div class="connection-status">
+                    <mat-icon [class]="getStatusClass()">
+                        {{ getStatusIcon() }}
+                    </mat-icon>
+                    <span [class]="getStatusClass()">{{ getStatusMessage() }}</span>
+                </div>
+            }
+        </form>
     }
 
     <div class="help-section">
         <h4>❓ Need Help?</h4>
         <ul>
+            <li><strong>M3U Link:</strong> Paste your complete playlist URL and we'll extract everything automatically</li>
+            <li><strong>Manual Login:</strong> Enter server URL, username, and password manually</li>
             <li>Make sure your server URL includes <code>http://</code> or <code>https://</code></li>
             <li>Check that your username and password are correct</li>
             <li>Verify your IPTV subscription is active</li>
             <li>Try the "Test Connection" button first</li>
         </ul>
     </div>
-</form>
+</div>

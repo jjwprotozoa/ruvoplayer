@@ -10,5 +10,9 @@ export const AppConfig = {
         parse: 'http://localhost:3333/api/parse',
         xtream: 'http://localhost:3333/api/xtream',
         stalker: 'http://localhost:3333/api/stalker'
-    }
+    },
+    // Fallback APIs for redundancy
+    FALLBACK_APIS: [
+        'http://localhost:3333/api'
+    ]
 };

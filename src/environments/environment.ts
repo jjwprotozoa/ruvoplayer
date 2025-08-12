@@ -11,6 +11,10 @@ export const AppConfig = {
         xtream: 'http://localhost:3333/api/xtream',
         stalker: 'http://localhost:3333/api/stalker'
     },
+    // Fallback APIs for redundancy
+    FALLBACK_APIS: [
+        'http://localhost:3333/api'
+    ],
     // Timeout configurations for better error handling
     TIMEOUTS: {
         DIRECT_FETCH: 15000,        // 15 seconds for direct playlist fetch

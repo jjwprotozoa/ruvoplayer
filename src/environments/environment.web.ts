@@ -11,5 +11,10 @@ export const AppConfig = {
         xtream: 'https://ruvoplayer-api.vercel.app/xtream',
         stalker: 'https://ruvoplayer-api.vercel.app/stalker',
         health: 'https://ruvoplayer-api.vercel.app/health'
-    }
+    },
+    // Fallback APIs for redundancy
+    FALLBACK_APIS: [
+        'https://ruvoplayer-api.vercel.app',        // Primary API
+        'https://ruvoplayer-api-backup.vercel.app'  // Backup API (when you deploy it)
+    ]
 };

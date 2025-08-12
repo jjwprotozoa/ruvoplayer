@@ -42,6 +42,43 @@ export class PwaService extends DataService {
         };
     }
 
+    /** Fallback APIs for redundancy */
+    get fallbackApis() {
+        return AppConfig.FALLBACK_APIS || [AppConfig.BACKEND_URL];
+    }
+
+    /** Smart API call with fallback */
+    private async makeApiCallWithFallback(endpoint: string, params: any, headers?: any) {
+        const apis = this.fallbackApis;
+        
+        for (let i = 0; i < apis.length; i++) {
+            const apiUrl = apis[i];
+            const fullUrl = `${apiUrl}${endpoint}`;
+            
+            try {
+                console.log(`Trying API ${i + 1}/${apis.length}: ${apiUrl}`);
+                const response = await firstValueFrom(
+                    this.http.get(fullUrl, { params, ...headers })
+                );
+                
+                if (i > 0) {
+                    console.log(`✅ Backup API ${apiUrl} succeeded!`);
+                }
+                
+                return response;
+            } catch (error) {
+                console.warn(`❌ API ${apiUrl} failed:`, error);
+                
+                if (i === apis.length - 1) {
+                    // Last API failed, throw the error
+                    throw error;
+                }
+                
+                console.log(`🔄 Trying next API...`);
+            }
+        }
+    }
+
     constructor() {
         super();
         console.log('PWA service initialized...');
@@ -208,15 +245,10 @@ export class PwaService extends DataService {
             : {};
         try {
             let result: any;
-            const response = await firstValueFrom(
-                this.http.get(`${this.apiEndpoints.xtream}`, {
-                    params: {
-                        url: payload.url,
-                        ...payload.params,
-                    },
-                    ...headers,
-                })
-            );
+            const response = await this.makeApiCallWithFallback('/xtream', {
+                url: payload.url,
+                ...payload.params,
+            }, headers);
 
             if (!(response as any).payload) {
                 if (payload.params.action === 'get_account_info') return;
@@ -251,21 +283,23 @@ export class PwaService extends DataService {
         params: Record<string, string>;
         macAddress: string;
     }) {
-        return this.http
-            .get(`${this.apiEndpoints.stalker}`, {
-                params: {
-                    url: payload.url,
-                    ...payload.params,
-                    macAddress: payload.macAddress,
-                },
-            })
-            .subscribe((response) => {
-                window.postMessage({
-                    type: STALKER_RESPONSE,
-                    payload: (response as any).payload,
-                    action: payload.params.action,
-                });
+        return this.makeApiCallWithFallback('/stalker', {
+            url: payload.url,
+            ...payload.params,
+            macAddress: payload.macAddress,
+        }).then((response) => {
+            window.postMessage({
+                type: STALKER_RESPONSE,
+                payload: (response as any).payload,
+                action: payload.params.action,
             });
+        }).catch((error) => {
+            console.error('All APIs failed for stalker request:', error);
+            window.postMessage({
+                type: ERROR,
+                message: 'All backup APIs failed'
+            });
+        });
     }
 
     removeAllListeners(): void {
