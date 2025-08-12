@@ -98,11 +98,71 @@ $ yay -S ruvo-player-bin
 
 You can install Ruvo Player from the [gentoo-zh overlay](https://github.com/microcai/gentoo-zh)
 
-```shell
-sudo eselect repository enable gentoo-zh
-sudo emerge --sync gentoo-zh
-sudo emerge ruvo-player-bin
-```
+## Development
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Angular CLI 19+
+- Git
+
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/ruvoplay/ruvo-player.git
+   cd ruvo-player
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start development environment:**
+
+   **Option A: Start both services (Recommended)**
+   ```bash
+   npm run serve:full
+   ```
+   This starts both the Angular app and the local API server concurrently.
+
+   **Option B: Start services separately**
+   ```bash
+   # Terminal 1: Start API server
+   npm run api:start
+   
+   # Terminal 2: Start Angular app
+   npm run serve
+   ```
+
+   **Option C: Use provided scripts (Windows)**
+   ```bash
+   # PowerShell (recommended)
+   .\start-dev.ps1
+   
+   # Or batch file
+   .\start-dev.bat
+   ```
+
+### Development URLs
+
+- **Angular App**: http://localhost:4200
+- **Local API Server**: http://localhost:3333
+  - Health check: http://localhost:3333/health
+  - Parse endpoint: http://localhost:3333/api/parse
+  - Xtream endpoint: http://localhost:3333/api/xtream
+  - Stalker endpoint: http://localhost:3333/api/stalker
+
+### Available Scripts
+
+- `npm run serve` - Start Angular development server only
+- `npm run serve:full` - Start both Angular app and API server
+- `npm run api:start` - Start local API server only
+- `npm run build` - Build for production (web)
+- `npm run build:web` - Build for web deployment
+- `npm run test` - Run unit tests
+- `npm run e2e` - Run end-to-end tests
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/ruvo-player)
 

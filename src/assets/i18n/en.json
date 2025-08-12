@@ -11,7 +11,8 @@
       "URL_UPLOAD": "Add via URL",
       "TEXT_IMPORT": "Import from text",
       "XTREME_IMPORT": "Add Xtreme Code",
-      "STALKER_PORTAL_IMPORT": "Add Stalker Portal"
+      "STALKER_PORTAL_IMPORT": "Add Stalker Portal",
+      "ADD_M3U": "Add M3U"
     },
     "PLAYLISTS": {
       "NO_PLAYLISTS": "No playlists were added",

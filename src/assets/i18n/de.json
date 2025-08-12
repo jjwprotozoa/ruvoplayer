@@ -97,7 +97,8 @@
       "URL_UPLOAD": "Via URL hinzufügen",
       "TEXT_IMPORT": "Als Text importieren",
       "XTREME_IMPORT": "Xtreme-Code hinzufügen",
-      "STALKER_PORTAL_IMPORT": "Stalker-Portal hinzufügen"
+      "STALKER_PORTAL_IMPORT": "Stalker-Portal hinzufügen",
+      "ADD_M3U": "M3U hinzufügen"
     },
     "URL_UPLOAD": {
       "ADD_PLAYLIST": "Playlist hinzufügen",

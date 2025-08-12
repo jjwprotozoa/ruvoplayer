@@ -172,29 +172,26 @@ import { addPlaylist } from '../../state/actions';
             width: 100%;
         }
 
-        ::ng-deep .mat-mdc-form-field-label {
-            color: #ffffff !important;
-            font-weight: 500 !important;
+        ::ng-deep .mat-mdc-form-field-outline {
+            color: #666666 !important;
         }
 
-        ::ng-deep .mat-mdc-form-field-hint {
-            color: #cccccc !important;
-            font-size: 14px !important;
-        }
-
-        ::ng-deep .mat-mdc-text-field-wrapper {
-            background-color: #333333 !important;
-            border-radius: 8px;
-            border: 1px solid #555555 !important;
+        ::ng-deep .mat-mdc-form-field-outline-thick {
+            color: #888888 !important;
         }
 
         ::ng-deep .mat-mdc-form-field-focus-overlay {
-            background-color: #404040 !important;
+            background-color: transparent !important;
         }
 
         ::ng-deep .mat-mdc-input-element {
             color: #ffffff !important;
             font-size: 16px !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field-hint {
+            color: #cccccc !important;
+            font-size: 14px !important;
         }
 
         ::ng-deep .mat-mdc-form-field-subscript-wrapper {
@@ -210,6 +207,32 @@ import { addPlaylist } from '../../state/actions';
         ::ng-deep .mat-mdc-input-element::placeholder {
             color: #999999 !important;
             opacity: 1 !important;
+        }
+
+        /* Remove floating labels completely */
+        ::ng-deep .mat-mdc-form-field-label {
+            display: none !important;
+        }
+
+        /* Style the outline appearance */
+        ::ng-deep .mat-mdc-form-field-outline-start,
+        ::ng-deep .mat-mdc-form-field-outline-end,
+        ::ng-deep .mat-mdc-form-field-outline-gap {
+            border-width: 1px !important;
+            border-color: #555555 !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field:hover .mat-mdc-form-field-outline-start,
+        ::ng-deep .mat-mdc-form-field:hover .mat-mdc-form-field-outline-end,
+        ::ng-deep .mat-mdc-form-field:hover .mat-mdc-form-field-outline-gap {
+            border-color: #777777 !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-start,
+        ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-end,
+        ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-gap {
+            border-color: #888888 !important;
+            border-width: 2px !important;
         }
 
         /* Button styling for better visibility */
