@@ -4,10 +4,12 @@ export const AppConfig = {
     production: true,
     environment: 'WEB',
     version: packageJson.version,
-    BACKEND_URL: 'https://iptvnator-playlist-parser-api.vercel.app',
-    // Fallback API endpoints
+    BACKEND_URL: 'https://ruvoplayer-api.vercel.app',
+    // API endpoints for RuvoPlayer
     API_ENDPOINTS: {
-        parse: '/api/parse',
-        xtream: '/api/xtream'
+        parse: 'https://ruvoplayer-api.vercel.app/parse',
+        xtream: 'https://ruvoplayer-api.vercel.app/xtream',
+        stalker: 'https://ruvoplayer-api.vercel.app/stalker',
+        health: 'https://ruvoplayer-api.vercel.app/health'
     }
 };
