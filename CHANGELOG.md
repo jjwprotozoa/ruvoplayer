@@ -1,3 +1,71 @@
+# Changelog
+
+All notable changes to Ruvo Player will be documented in this file.
+
+## [1.0.0-beta.8] - 2024-12-XX
+
+### 🚀 **Major Improvements**
+
+#### **Development Experience**
+- **Concurrent Development Servers**: Added `npm run serve:full` to start both Angular app and local API server simultaneously
+- **Smart Process Management**: PowerShell and batch scripts automatically handle port conflicts and process cleanup
+- **One-Command Setup**: Developers can now start the entire development environment with a single command
+
+#### **Local API Server**
+- **Complete API Coverage**: Added missing `/api/stalker` endpoint for full API compatibility
+- **Enhanced Error Handling**: Improved error responses and logging for better debugging
+- **Health Monitoring**: Comprehensive health check endpoint with detailed status information
+
+#### **User Experience**
+- **M3U Link Integration**: New "Add M3U" menu item with auto-credential extraction from M3U links
+- **Smart Login Detection**: Toggle between "M3U" and "Xtream" modes for streamlined playlist addition
+- **Visual Improvements**: Dark theme styling for M3U import section with better contrast and readability
+- **Mobile Responsiveness**: Enhanced mobile layout with proper touch targets and responsive design
+
+### 🔧 **Technical Improvements**
+
+#### **Form Field Styling**
+- **Eliminated Text Overlap**: Removed floating labels to prevent text overlap issues
+- **Outline Appearance**: Consistent form field styling with proper borders and focus states
+- **Better Contrast**: Improved text visibility and placeholder text readability
+
+#### **Build System**
+- **Vercel Deployment**: Fixed build configuration for proper production deployment
+- **Environment Configuration**: Enhanced environment files with comprehensive API endpoint configuration
+- **Build Scripts**: Streamlined build process with proper configuration targeting
+
+#### **API Integration**
+- **Fallback API Support**: Implemented redundant API endpoints for improved reliability
+- **Connection Testing**: Fixed portal status checking for proper IPTV provider validation
+- **Error Recovery**: Better error handling and user feedback for connection issues
+
+### 📱 **Mobile & Accessibility**
+- **Responsive Design**: Improved mobile layout with proper spacing and touch targets
+- **Text Visibility**: Enhanced contrast and readability across all screen sizes
+- **Touch-Friendly**: Optimized button sizes and spacing for mobile devices
+
+### 🛠 **Developer Tools**
+- **Start Scripts**: 
+  - `start-dev.ps1` - PowerShell script with smart process management
+  - `start-dev.bat` - Windows batch file for easy setup
+- **NPM Scripts**:
+  - `npm run serve:full` - Start both services concurrently
+  - `npm run api:start` - Start local API server only
+- **Documentation**: Comprehensive README with development setup instructions
+
+### 🐛 **Bug Fixes**
+- **Connection Errors**: Resolved "Could not connect to the portal" errors in local development
+- **Text Overlap**: Fixed form field label overlap issues
+- **API Endpoints**: Added missing API endpoints for complete functionality
+- **Build Failures**: Fixed Vercel deployment issues with proper build configuration
+
+### 📚 **Documentation**
+- **Development Guide**: Added comprehensive development section to README
+- **API Reference**: Documented all available endpoints and their purposes
+- **Setup Instructions**: Clear step-by-step guide for new developers
+
+---
+
 # [0.12.0](https://github.com/4gray/iptvnator/compare/v0.11.1...v0.12.0) (2023-03-11)
 
 
