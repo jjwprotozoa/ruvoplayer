@@ -61,7 +61,7 @@
                             ]
                         },
                         "web": {
-                            "outputPath": "dist",
+                            "outputPath": "dist/browser",
                             "optimization": true,
                             "outputHashing": "none",
                             "sourceMap": false,
