@@ -1,7 +1,9 @@
 {
     "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
     "cli": {
-        "schematicCollections": ["@angular-eslint/schematics"],
+        "schematicCollections": [
+            "@angular-eslint/schematics"
+        ],
         "analytics": false
     },
     "version": 1,
@@ -22,11 +24,13 @@
                     "builder": "@angular/build:application",
                     "options": {
                         "outputPath": {
-                          "base": "dist"
+                            "base": "dist"
                         },
                         "index": "src/index.html",
                         "tsConfig": "src/tsconfig.app.json",
-                        "polyfills": ["zone.js"],
+                        "polyfills": [
+                            "zone.js"
+                        ],
                         "assets": [
                             "src/favicon.ico",
                             "src/assets",
@@ -57,6 +61,7 @@
                             ]
                         },
                         "web": {
+                            "outputPath": "dist",
                             "optimization": true,
                             "outputHashing": "none",
                             "sourceMap": false,
@@ -116,7 +121,10 @@
                 "lint": {
                     "builder": "@angular-eslint/builder:lint",
                     "options": {
-                        "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+                        "lintFilePatterns": [
+                            "src/**/*.ts",
+                            "src/**/*.html"
+                        ]
                     }
                 }
             }
@@ -128,7 +136,9 @@
                 "lint": {
                     "builder": "@angular-eslint/builder:lint",
                     "options": {
-                        "lintFilePatterns": ["e2e/**/*.ts"]
+                        "lintFilePatterns": [
+                            "e2e/**/*.ts"
+                        ]
                     }
                 }
             }
