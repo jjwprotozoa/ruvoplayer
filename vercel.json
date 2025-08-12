@@ -21,6 +21,7 @@
       "dest": "/index.html"
     }
   ],
+  "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
   }
