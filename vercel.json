@@ -5,9 +5,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/browser",
-        "installCommand": "npm ci",
-        "buildCommand": "npm run build:web"
+        "distDir": "dist/browser"
       }
     }
   ],
@@ -36,8 +34,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
