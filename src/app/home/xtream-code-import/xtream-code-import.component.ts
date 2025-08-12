@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject, Input, OnInit } from '@angular/core';
 import {
     FormControl,
     FormGroup,
@@ -253,7 +253,8 @@ import { addPlaylist } from '../../state/actions';
         `,
     ],
 })
-export class XtreamCodeImportComponent {
+export class XtreamCodeImportComponent implements OnInit {
+    @Input() defaultMode: 'manual' | 'm3u-link' = 'manual';
     @Output() addClicked = new EventEmitter<void>();
     URL_REGEX = /^(http|https|file):\/\/[^ "]+$/;
     
@@ -278,6 +279,11 @@ export class XtreamCodeImportComponent {
 
     connectionStatus: PortalStatus | null = null;
     isTestingConnection = false;
+
+    ngOnInit() {
+        // Set the default mode when component initializes
+        this.loginMode = this.defaultMode;
+    }
 
     async testConnection(): Promise<void> {
         if (!this.form.valid) return;

@@ -15,7 +15,7 @@ import { XtreamCodeImportComponent } from '../../../home/xtream-code-import/xtre
 import { DataService } from '../../../services/data.service';
 import { parsePlaylist } from '../../../state/actions';
 
-export type PlaylistType = 'xtream' | 'text' | 'file' | 'stalker';
+export type PlaylistType = 'xtream' | 'text' | 'file' | 'stalker' | 'm3u-link';
 
 @Component({
     imports: [

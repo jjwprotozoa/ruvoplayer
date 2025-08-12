@@ -142,6 +142,17 @@
             <mat-menu #addPlaylistMenu="matMenu">
                 <button
                     mat-menu-item
+                    [attr.aria-label]="'HOME.TABS.M3U_LINK_IMPORT' | translate"
+                    (click)="opedAddPlaylistDialog('m3u-link')"
+                    class="m3u-link-menu-item"
+                >
+                    <mat-icon>link</mat-icon>
+                    <span>{{ 'HOME.TABS.M3U_LINK_IMPORT' | translate }}</span>
+                    <span class="menu-badge">NEW</span>
+                </button>
+                
+                <button
+                    mat-menu-item
                     [attr.aria-label]="'HOME.TABS.FILE_UPLOAD' | translate"
                     (click)="opedAddPlaylistDialog('file')"
                 >
