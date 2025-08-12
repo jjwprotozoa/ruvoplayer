@@ -29,7 +29,7 @@ import { TranslateModule } from '@ngx-translate/core';
                     <button 
                         mat-raised-button 
                         color="primary" 
-                        (click)="startM3UImport()"
+                        (click)="onStartM3UImport()"
                         class="feature-btn"
                     >
                         <mat-icon>link</mat-icon>
@@ -43,7 +43,7 @@ import { TranslateModule } from '@ngx-translate/core';
                     <p>Upload M3U/M3U8 files from your device or paste playlist content directly</p>
                     <button 
                         mat-stroked-button 
-                        (click)="startFileUpload()"
+                        (click)="onStartFileUpload()"
                         class="feature-btn"
                     >
                         <mat-icon>upload_file</mat-icon>
@@ -57,7 +57,7 @@ import { TranslateModule } from '@ngx-translate/core';
                     <p>Connect to Xtream or Stalker portals with your credentials</p>
                     <button 
                         mat-stroked-button 
-                        (click)="startIPTVLogin()"
+                        (click)="onStartIPTVLogin()"
                         class="feature-btn"
                     >
                         <mat-icon>video_library</mat-icon>
