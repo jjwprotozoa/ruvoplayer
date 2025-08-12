@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import {
     FormControl,
     FormGroup,
@@ -12,7 +12,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { v4 as uuid } from 'uuid';
@@ -56,14 +55,41 @@ import { addPlaylist } from '../../state/actions';
 
         .login-mode-tabs {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
         }
 
         .login-mode-tab {
             flex: 1;
-            padding: 12px 20px;
+            padding: 16px 24px;
             font-weight: 500;
             color: #ffffff;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .login-mode-tab .mat-icon {
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Ensure button toggle text is visible */
+        ::ng-deep .mat-button-toggle {
+            background-color: #333333 !important;
+            color: #ffffff !important;
+            border: 1px solid #555555 !important;
+        }
+
+        ::ng-deep .mat-button-toggle-checked {
+            background-color: #4a4a4a !important;
+            color: #ffffff !important;
+            border-color: #666666 !important;
+        }
+
+        ::ng-deep .mat-button-toggle-label-content {
+            color: #ffffff !important;
+            font-weight: 500 !important;
         }
 
         .m3u-link-section {
@@ -148,15 +174,18 @@ import { addPlaylist } from '../../state/actions';
 
         ::ng-deep .mat-mdc-form-field-label {
             color: #ffffff !important;
+            font-weight: 500 !important;
         }
 
         ::ng-deep .mat-mdc-form-field-hint {
-            color: #b0b0b0 !important;
+            color: #cccccc !important;
+            font-size: 14px !important;
         }
 
         ::ng-deep .mat-mdc-text-field-wrapper {
             background-color: #333333 !important;
             border-radius: 8px;
+            border: 1px solid #555555 !important;
         }
 
         ::ng-deep .mat-mdc-form-field-focus-overlay {
@@ -165,10 +194,41 @@ import { addPlaylist } from '../../state/actions';
 
         ::ng-deep .mat-mdc-input-element {
             color: #ffffff !important;
+            font-size: 16px !important;
         }
 
         ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-            color: #b0b0b0 !important;
+            color: #cccccc !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field-error {
+            color: #ff6b6b !important;
+            font-weight: 500 !important;
+        }
+
+        /* Ensure placeholder text is visible */
+        ::ng-deep .mat-mdc-input-element::placeholder {
+            color: #999999 !important;
+            opacity: 1 !important;
+        }
+
+        /* Button styling for better visibility */
+        ::ng-deep .mat-mdc-raised-button {
+            font-weight: 500 !important;
+            font-size: 16px !important;
+        }
+
+        ::ng-deep .mat-mdc-stroked-button {
+            font-weight: 500 !important;
+            font-size: 16px !important;
+            border-color: #666666 !important;
+            color: #ffffff !important;
+        }
+
+        ::ng-deep .mat-mdc-button {
+            font-weight: 500 !important;
+            font-size: 16px !important;
+            color: #ffffff !important;
         }
 
         .quick-fill-section {

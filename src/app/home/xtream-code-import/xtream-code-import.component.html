@@ -4,11 +4,11 @@
         <mat-button-toggle-group [(value)]="loginMode" class="login-mode-tabs">
             <mat-button-toggle value="m3u-link" class="login-mode-tab">
                 <mat-icon>link</mat-icon>
-                M3U Link (Auto-detect)
+                M3U
             </mat-button-toggle>
             <mat-button-toggle value="manual" class="login-mode-tab">
                 <mat-icon>edit</mat-icon>
-                Manual Xtream Login
+                Xtream
             </mat-button-toggle>
         </mat-button-toggle-group>
     </div>
@@ -17,7 +17,7 @@
     @if (loginMode === 'm3u-link') {
         <div class="m3u-link-section">
             <div class="form-header">
-                <h3>🔗 M3U Link Import</h3>
+                <h3>🔗 M3U Import</h3>
                 <p class="form-subtitle">Paste your M3U playlist link and we'll extract the credentials automatically</p>
             </div>
 
@@ -73,7 +73,7 @@
     @if (loginMode === 'manual') {
         <form [formGroup]="form">
             <div class="form-header">
-                <h3>📺 Manual Xtream Login</h3>
+                <h3>📺 Xtream Login</h3>
                 <p class="form-subtitle">Enter your IPTV provider credentials manually</p>
             </div>
 
@@ -187,8 +187,8 @@
     <div class="help-section">
         <h4>❓ Need Help?</h4>
         <ul>
-            <li><strong>M3U Link:</strong> Paste your complete playlist URL and we'll extract everything automatically</li>
-            <li><strong>Manual Login:</strong> Enter server URL, username, and password manually</li>
+            <li><strong>M3U:</strong> Paste your complete playlist URL and we'll extract everything automatically</li>
+            <li><strong>Xtream:</strong> Enter server URL, username, and password manually</li>
             <li>Make sure your server URL includes <code>http://</code> or <code>https://</code></li>
             <li>Check that your username and password are correct</li>
             <li>Verify your IPTV subscription is active</li>
