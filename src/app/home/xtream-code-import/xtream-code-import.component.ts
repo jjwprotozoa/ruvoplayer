@@ -46,6 +46,7 @@ import { addPlaylist } from '../../state/actions';
             background: #1e1e1e;
             border-radius: 16px;
             border: 1px solid #333;
+            color: #ffffff;
         }
 
         .login-mode-selector {
@@ -62,6 +63,7 @@ import { addPlaylist } from '../../state/actions';
             flex: 1;
             padding: 12px 20px;
             font-weight: 500;
+            color: #ffffff;
         }
 
         .m3u-link-section {
@@ -70,6 +72,7 @@ import { addPlaylist } from '../../state/actions';
             padding: 25px;
             margin-bottom: 20px;
             border: 2px solid #404040;
+            color: #ffffff;
         }
 
         .m3u-actions {
@@ -97,6 +100,7 @@ import { addPlaylist } from '../../state/actions';
             padding: 20px;
             margin-top: 20px;
             border: 1px solid #3f51b5;
+            color: #ffffff;
         }
 
         .m3u-info h4 {
@@ -122,13 +126,13 @@ import { addPlaylist } from '../../state/actions';
 
         .form-header h3 {
             margin: 0 0 10px 0;
-            color: #fff;
+            color: #ffffff;
             font-size: 24px;
         }
 
         .form-subtitle {
             margin: 0;
-            color: #b0b0b0;
+            color: #cccccc;
             font-size: 16px;
         }
 
@@ -137,17 +141,48 @@ import { addPlaylist } from '../../state/actions';
             margin-bottom: 20px;
         }
 
+        /* Form field styling for better visibility */
+        ::ng-deep .mat-mdc-form-field {
+            width: 100%;
+        }
+
+        ::ng-deep .mat-mdc-form-field-label {
+            color: #ffffff !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field-hint {
+            color: #b0b0b0 !important;
+        }
+
+        ::ng-deep .mat-mdc-text-field-wrapper {
+            background-color: #333333 !important;
+            border-radius: 8px;
+        }
+
+        ::ng-deep .mat-mdc-form-field-focus-overlay {
+            background-color: #404040 !important;
+        }
+
+        ::ng-deep .mat-mdc-input-element {
+            color: #ffffff !important;
+        }
+
+        ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+            color: #b0b0b0 !important;
+        }
+
         .quick-fill-section {
             background: #2d2d2d;
             border-radius: 8px;
             padding: 20px;
             margin: 25px 0;
             border: 1px solid #404040;
+            color: #ffffff;
         }
 
         .quick-fill-section h4 {
             margin: 0 0 15px 0;
-            color: #fff;
+            color: #ffffff;
             font-size: 16px;
         }
 
@@ -217,11 +252,12 @@ import { addPlaylist } from '../../state/actions';
             padding: 20px;
             margin-top: 30px;
             border: 1px solid #404040;
+            color: #ffffff;
         }
 
         .help-section h4 {
             margin: 0 0 15px 0;
-            color: #fff;
+            color: #ffffff;
             font-size: 16px;
         }
 
@@ -232,7 +268,7 @@ import { addPlaylist } from '../../state/actions';
 
         .help-section li {
             margin-bottom: 8px;
-            color: #b0b0b0;
+            color: #cccccc;
         }
 
         .help-section code {
@@ -244,17 +280,98 @@ import { addPlaylist } from '../../state/actions';
             color: #e0e0e0;
         }
 
+        /* Enhanced Mobile Responsiveness */
         @media (max-width: 768px) {
             .smart-login-container {
                 padding: 15px;
+                margin: 10px;
+                border-radius: 12px;
             }
             
-            .m3u-actions, .button-row {
+            .login-mode-tabs {
+                max-width: 100%;
+            }
+            
+            .login-mode-tab {
+                padding: 16px 12px;
+                font-size: 14px;
+                min-height: 48px;
+            }
+            
+            .m3u-link-section {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .m3u-actions {
                 flex-direction: column;
+                gap: 12px;
             }
             
-            .extract-btn, .test-btn, .add-btn {
+            .extract-btn, .example-btn {
                 min-width: 100%;
+                height: 52px;
+                font-size: 16px;
+            }
+            
+            .button-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .test-btn, .add-btn {
+                min-width: 100%;
+                height: 52px;
+                font-size: 16px;
+            }
+            
+            .quick-fill-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .quick-fill-btn {
+                min-width: 100%;
+                height: 48px;
+                font-size: 16px;
+            }
+            
+            .form-header h3 {
+                font-size: 20px;
+            }
+            
+            .form-subtitle {
+                font-size: 14px;
+            }
+            
+            .m3u-info, .help-section, .quick-fill-section {
+                padding: 15px;
+            }
+            
+            .m3u-info h4, .help-section h4, .quick-fill-section h4 {
+                font-size: 15px;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 480px) {
+            .smart-login-container {
+                padding: 12px;
+                margin: 5px;
+            }
+            
+            .login-mode-tab {
+                padding: 14px 8px;
+                font-size: 13px;
+            }
+            
+            .m3u-link-section, .m3u-info, .help-section, .quick-fill-section {
+                padding: 12px;
+            }
+            
+            .extract-btn, .example-btn, .test-btn, .add-btn, .quick-fill-btn {
+                height: 48px;
+                font-size: 15px;
             }
         }
         `,
