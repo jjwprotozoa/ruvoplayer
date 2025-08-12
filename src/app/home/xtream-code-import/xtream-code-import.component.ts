@@ -43,6 +43,9 @@ import { addPlaylist } from '../../state/actions';
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            background: #1e1e1e;
+            border-radius: 16px;
+            border: 1px solid #333;
         }
 
         .login-mode-selector {
@@ -62,11 +65,11 @@ import { addPlaylist } from '../../state/actions';
         }
 
         .m3u-link-section {
-            background: #f8f9fa;
+            background: #2a2a2a;
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 20px;
-            border: 2px solid #e9ecef;
+            border: 2px solid #404040;
         }
 
         .m3u-actions {
@@ -89,15 +92,16 @@ import { addPlaylist } from '../../state/actions';
         }
 
         .m3u-info {
-            background: #e3f2fd;
+            background: #1e3a5f;
             border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
+            border: 1px solid #3f51b5;
         }
 
         .m3u-info h4 {
             margin: 0 0 15px 0;
-            color: #1976d2;
+            color: #90caf9;
             font-size: 16px;
         }
 
@@ -108,7 +112,7 @@ import { addPlaylist } from '../../state/actions';
 
         .m3u-info li {
             margin-bottom: 8px;
-            color: #424242;
+            color: #e3f2fd;
         }
 
         .form-header {
@@ -118,13 +122,13 @@ import { addPlaylist } from '../../state/actions';
 
         .form-header h3 {
             margin: 0 0 10px 0;
-            color: #333;
+            color: #fff;
             font-size: 24px;
         }
 
         .form-subtitle {
             margin: 0;
-            color: #666;
+            color: #b0b0b0;
             font-size: 16px;
         }
 
@@ -134,15 +138,16 @@ import { addPlaylist } from '../../state/actions';
         }
 
         .quick-fill-section {
-            background: #f5f5f5;
+            background: #2d2d2d;
             border-radius: 8px;
             padding: 20px;
             margin: 25px 0;
+            border: 1px solid #404040;
         }
 
         .quick-fill-section h4 {
             margin: 0 0 15px 0;
-            color: #333;
+            color: #fff;
             font-size: 16px;
         }
 
@@ -183,39 +188,40 @@ import { addPlaylist } from '../../state/actions';
         }
 
         .status-active {
-            background: #e8f5e8;
-            color: #2e7d32;
+            background: #1b5e20;
+            color: #4caf50;
             border: 1px solid #4caf50;
         }
 
         .status-inactive {
-            background: #fff3e0;
-            color: #ef6c00;
+            background: #e65100;
+            color: #ffcc02;
             border: 1px solid #ff9800;
         }
 
         .status-expired {
-            background: #ffebee;
-            color: #c62828;
+            background: #b71c1c;
+            color: #f44336;
             border: 1px solid #f44336;
         }
 
         .status-unavailable {
-            background: #ffebee;
-            color: #c62828;
+            background: #b71c1c;
+            color: #f44336;
             border: 1px solid #f44336;
         }
 
         .help-section {
-            background: #f8f9fa;
+            background: #2a2a2a;
             border-radius: 8px;
             padding: 20px;
             margin-top: 30px;
+            border: 1px solid #404040;
         }
 
         .help-section h4 {
             margin: 0 0 15px 0;
-            color: #333;
+            color: #fff;
             font-size: 16px;
         }
 
@@ -226,15 +232,16 @@ import { addPlaylist } from '../../state/actions';
 
         .help-section li {
             margin-bottom: 8px;
-            color: #424242;
+            color: #b0b0b0;
         }
 
         .help-section code {
-            background: #e9ecef;
+            background: #404040;
             padding: 2px 6px;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
+            color: #e0e0e0;
         }
 
         @media (max-width: 768px) {

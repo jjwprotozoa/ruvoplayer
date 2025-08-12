@@ -6,6 +6,7 @@
     "SUBTITLE": "Please select a playlist from the list or add a new playlist",
     "TABS": {
       "RECENTLY_ADDED": "Recently added playlists",
+      "M3U_LINK_IMPORT": "M3U Link Import",
       "FILE_UPLOAD": "Add via file upload",
       "URL_UPLOAD": "Add via URL",
       "TEXT_IMPORT": "Import from text",

@@ -93,6 +93,7 @@
     "TABS": {
       "FILE_UPLOAD": "Aus Dateisystem hochladen",
       "RECENTLY_ADDED": "Zuletzt hinzugefügt",
+      "M3U_LINK_IMPORT": "M3U-Link Import",
       "URL_UPLOAD": "Via URL hinzufügen",
       "TEXT_IMPORT": "Als Text importieren",
       "XTREME_IMPORT": "Xtreme-Code hinzufügen",
