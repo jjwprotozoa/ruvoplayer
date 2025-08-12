@@ -33,9 +33,28 @@
             if (global === undefined) {
                 var global = window;
             }
+            
+            // Debug logging
+            console.log('Ruvo Player - Index.html loaded');
+            window.addEventListener('error', function(e) {
+                console.error('Global error:', e.error);
+            });
         </script>
     </head>
     <body class="mat-app-background">
+        <div id="loading">Loading Ruvo Player...</div>
         <app-root></app-root>
+        <script>
+            // Check if app-root is populated
+            setTimeout(function() {
+                const appRoot = document.querySelector('app-root');
+                if (appRoot && appRoot.children.length === 0) {
+                    console.error('App root is empty - Angular may not have loaded');
+                    document.getElementById('loading').innerHTML = 'Error: App failed to load. Check console for details.';
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 5000);
+        </script>
     </body>
 </html>
