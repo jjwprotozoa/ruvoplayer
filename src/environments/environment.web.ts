@@ -15,6 +15,6 @@ export const AppConfig = {
     // Fallback APIs for redundancy
     FALLBACK_APIS: [
         'https://ruvoplayer-api.vercel.app',        // Primary API
-        'https://ruvoplayer-api-backup.vercel.app'  // Backup API (when you deploy it)
+        'https://ruvoplayer-api-backup-953rkzb9k-justins-projects-f7a019bf.vercel.app'  // Backup API
     ]
 };

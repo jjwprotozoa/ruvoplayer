@@ -22,13 +22,9 @@ import {
     PortalStatusService,
 } from '../../services/portal-status.service';
 import { addPlaylist } from '../../state/actions';
-import { HeaderComponent } from '../header/header.component';
-import { RecentPlaylistsComponent } from '../recent-playlists/recent-playlists.component';
-import { NgIf } from '@angular/common';
 
 @Component({
     imports: [
-        NgIf,
         FormsModule,
         ReactiveFormsModule,
         MatButton,
@@ -38,8 +34,6 @@ import { NgIf } from '@angular/common';
         MatInputModule,
         MatProgressBarModule,
         TranslatePipe,
-        HeaderComponent,
-        RecentPlaylistsComponent,
     ],
     selector: 'app-xtream-code-import',
     templateUrl: './xtream-code-import.component.html',
