@@ -33,6 +33,15 @@ export class PwaService extends DataService {
     /** Proxy URL to avoid CORS issues */
     corsProxyUrl = AppConfig.BACKEND_URL;
 
+    /** API endpoints for different services */
+    get apiEndpoints() {
+        return AppConfig.API_ENDPOINTS || {
+            parse: `${AppConfig.BACKEND_URL}/parse`,
+            xtream: `${AppConfig.BACKEND_URL}/xtream`,
+            stalker: `${AppConfig.BACKEND_URL}/stalker`
+        };
+    }
+
     constructor() {
         super();
         console.log('PWA service initialized...');
@@ -200,7 +209,7 @@ export class PwaService extends DataService {
         try {
             let result: any;
             const response = await firstValueFrom(
-                this.http.get(`${this.corsProxyUrl}/xtream`, {
+                this.http.get(`${this.apiEndpoints.xtream}`, {
                     params: {
                         url: payload.url,
                         ...payload.params,
@@ -243,7 +252,7 @@ export class PwaService extends DataService {
         macAddress: string;
     }) {
         return this.http
-            .get(`${this.corsProxyUrl}/stalker`, {
+            .get(`${this.apiEndpoints.stalker}`, {
                 params: {
                     url: payload.url,
                     ...payload.params,

@@ -5,6 +5,12 @@ export const AppConfig = {
     environment: 'LOCAL',
     version: packageJson.version,
     BACKEND_URL: 'http://localhost:3333/api',
+    // API endpoints for local development
+    API_ENDPOINTS: {
+        parse: 'http://localhost:3333/api/parse',
+        xtream: 'http://localhost:3333/api/xtream',
+        stalker: 'http://localhost:3333/api/stalker'
+    },
     // Timeout configurations for better error handling
     TIMEOUTS: {
         DIRECT_FETCH: 15000,        // 15 seconds for direct playlist fetch
