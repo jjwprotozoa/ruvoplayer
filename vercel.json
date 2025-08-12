@@ -21,14 +21,6 @@
       "dest": "/index.html"
     }
   ],
-  "functions": {
-    "api/parse.js": {
-      "maxDuration": 30
-    },
-    "api/xtream.js": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
