@@ -5,4 +5,9 @@ export const AppConfig = {
     environment: 'WEB',
     version: packageJson.version,
     BACKEND_URL: 'https://iptvnator-playlist-parser-api.vercel.app',
+    // Fallback API endpoints
+    API_ENDPOINTS: {
+        parse: '/api/parse',
+        xtream: '/api/xtream'
+    }
 };
