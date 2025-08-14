@@ -8,6 +8,7 @@ import { ERROR, PLAYLIST_PARSE_RESPONSE } from '../../../shared/ipc-commands';
 import { Playlist } from '../../../shared/playlist.interface';
 import { DataService } from '../services/data.service';
 import { HeaderComponent } from '../shared/components/header/header.component';
+
 import { addPlaylist } from '../state/actions';
 import { RecentPlaylistsComponent } from './recent-playlists/recent-playlists.component';
 
@@ -17,6 +18,7 @@ import { RecentPlaylistsComponent } from './recent-playlists/recent-playlists.co
     styleUrls: ['./home.component.scss'],
     imports: [
         HeaderComponent,
+
         MatProgressBarModule,
         NgIf,
         RecentPlaylistsComponent,

@@ -4,7 +4,9 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
     name: 'filterBy',
     standalone: true,
 })
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class FilterPipe implements PipeTransform {
     transform(array: any[], filter: string, property: string): any {
         if (!array || !filter) {

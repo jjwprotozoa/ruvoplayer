@@ -1,7 +1,6 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { StorageMap } from '@ngx-pwa/local-storage';
-import { catchError, map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { STORE_KEY } from '../shared/enums/store-keys.enum';
 import { Theme } from './../settings/theme.enum';
 
@@ -10,7 +9,6 @@ import { Theme } from './../settings/theme.enum';
 })
 export class SettingsService {
     constructor(
-        private http: HttpClient,
         private storage: StorageMap
     ) {}
 
@@ -53,28 +51,6 @@ export class SettingsService {
         }
     }
 
-    /**
-     * Returns the version of the released app
-     */
-    getAppVersion() {
-        return this.http
-            .get<
-                { created_at: string; name: string }[]
-            >('https://api.github.com/repos/4gray/iptvnator/releases')
-            .pipe(
-                map(
-                    (response) =>
-                        response.sort(
-                            (a, b) =>
-                                new Date(b.created_at).getTime() -
-                                new Date(a.created_at).getTime()
-                        )[0]
-                ),
-                map((response) => response.name),
-                catchError((err) => {
-                    console.error(err);
-                    throw new Error(err);
-                })
-            );
-    }
+    // Removed getAppVersion method - was leftover from IPTVnator and made unwanted network requests
+    // App version is now handled by the data service (electron/tauri/pwa services)
 }

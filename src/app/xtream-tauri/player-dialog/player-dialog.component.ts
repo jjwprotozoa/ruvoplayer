@@ -29,7 +29,7 @@ export interface PlayerDialogData {
     styleUrl: './player-dialog.component.scss',
     encapsulation: ViewEncapsulation.None
 })
-export class PlayerDialogComponent {
+export class XtreamTauriPlayerDialogComponent {
     title: string;
     streamUrl: string;
 

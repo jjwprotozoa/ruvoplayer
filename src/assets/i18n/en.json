@@ -353,5 +353,12 @@
     "DOWN_CHANNEL": "Down channel",
     "HEADER": "Ruvo Player Remote Control",
     "FOOTER": "Ruvo Player Remote Control"
+  },
+  "ROUTE": {
+    "CONNECTION_ROUTE": "Connection Route",
+    "PRIMARY_RECOMMENDED": "Primary (recommended)",
+    "PRIMARY": "Primary",
+    "SECURE_VPN_CF": "Secure (VPN/CF)",
+    "ROUTE_DESCRIPTION": "Choose your preferred connection route. Primary is fastest, Secure bypasses ISP restrictions."
   }
 }

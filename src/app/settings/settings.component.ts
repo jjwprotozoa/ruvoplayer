@@ -33,7 +33,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { take } from 'rxjs';
-import * as semver from 'semver';
+
 import {
     SET_MPV_PLAYER_PATH,
     SET_VLC_PLAYER_PATH,
@@ -49,9 +49,10 @@ import { HeaderComponent } from '../shared/components/header/header.component';
 import * as PlaylistActions from '../state/actions';
 import { selectIsEpgAvailable } from '../state/selectors';
 import { SettingsService } from './../services/settings.service';
-import { StreamFormat } from './stream-format.enum';
 import { Language } from './language.enum';
+
 import { VideoPlayer } from './settings.interface';
+import { StreamFormat } from './stream-format.enum';
 import { Theme } from './theme.enum';
 
 @Component({
@@ -69,6 +70,7 @@ import { Theme } from './theme.enum';
         MatSelectModule,
         MatTooltipModule,
         ReactiveFormsModule,
+
         TranslateModule,
         MatDialogModule,
     ],
@@ -216,43 +218,12 @@ export class SettingsComponent implements OnInit {
      * settings UI
      */
     checkAppVersion(): void {
-        this.settingsService
-            .getAppVersion()
-            .pipe(take(1))
-            .subscribe((version) => this.showVersionInformation(version));
+        // App version is now handled by the data service
+        // No need to check for updates in the frontend
+        this.updateMessage = this.translate.instant('SETTINGS.LATEST_VERSION');
     }
 
-    /**
-     * Updates the message in settings UI about the used
-     * version of the app
-     * @param currentVersion current version of the application
-     */
-    showVersionInformation(currentVersion: string): void {
-        const isOutdated = this.isCurrentVersionOutdated(currentVersion);
 
-        if (isOutdated) {
-            this.updateMessage = `${
-                this.translate.instant(
-                    'SETTINGS.NEW_VERSION_AVAILABLE'
-                ) as string
-            }: ${currentVersion}`;
-        } else {
-            this.updateMessage = this.translate.instant(
-                'SETTINGS.LATEST_VERSION'
-            );
-        }
-    }
-
-    /**
-     * Compares actual with latest version of the
-     * application
-     * @param latestVersion latest version
-     * @returns returns true if an update is available
-     */
-    isCurrentVersionOutdated(latestVersion: string): boolean {
-        this.version = this.dataService.getAppVersion();
-        return semver.lt(this.version, latestVersion);
-    }
 
     /**
      * Triggers on form submit and saves the config object to

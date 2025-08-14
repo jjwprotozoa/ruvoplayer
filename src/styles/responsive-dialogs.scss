@@ -1,0 +1,850 @@
+// Responsive Dialog Styles - Based on IPTVnator's responsive design system
+
+// ===== RESPONSIVE DIALOG BREAKPOINTS =====
+
+// TV & Large Displays (≥1920px)
+.tv-dialog {
+  .mat-mdc-dialog-container {
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .mat-mdc-dialog-surface {
+    padding: 30px;
+    font-size: 18px;
+  }
+  
+  .mat-mdc-dialog-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .mat-mdc-dialog-content {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 20px 0 0 0;
+    
+    button {
+      min-height: 50px;
+      padding: 0 30px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+  }
+}
+
+// Desktop (1024px - 1919px)
+.desktop-dialog {
+  .mat-mdc-dialog-container {
+    border-radius: 10px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+  }
+  
+  .mat-mdc-dialog-surface {
+    padding: 25px;
+    font-size: 16px;
+  }
+  
+  .mat-mdc-dialog-title {
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+  
+  .mat-mdc-dialog-content {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 18px 0 0 0;
+    
+    button {
+      min-height: 45px;
+      padding: 0 25px;
+      font-size: 15px;
+      border-radius: 6px;
+    }
+  }
+}
+
+// Tablet (768px - 1023px)
+.tablet-dialog {
+  .mat-mdc-dialog-container {
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .mat-mdc-dialog-surface {
+    padding: 20px;
+    font-size: 15px;
+  }
+  
+  .mat-mdc-dialog-title {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .mat-mdc-dialog-content {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 15px 0 0 0;
+    
+    button {
+      min-height: 42px;
+      padding: 0 20px;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+  }
+}
+
+// Mobile (≤767px)
+.mobile-dialog {
+  .mat-mdc-dialog-container {
+    border-radius: 6px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    margin: 10px;
+  }
+  
+  .mat-mdc-dialog-surface {
+    padding: 15px;
+    font-size: 14px;
+  }
+  
+  .mat-mdc-dialog-title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .mat-mdc-dialog-content {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  
+  .mat-mdc-dialog-actions {
+    padding: 12px 0 0 0;
+    flex-direction: column;
+    gap: 10px;
+    
+    button {
+      min-height: 44px;
+      padding: 0 20px;
+      font-size: 14px;
+      border-radius: 4px;
+      width: 100%;
+    }
+  }
+}
+
+// ===== VIDEO PLAYER DIALOG SPECIFIC STYLES =====
+
+.video-player-dialog {
+  .mat-mdc-dialog-content {
+    padding: 0;
+    overflow: hidden;
+    
+    app-web-player-view {
+      display: block;
+      height: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .video-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: all 0.3s ease;
+    }
+  }
+}
+
+// ===== VIDEO CONTROLS OVERLAY =====
+
+.video-controls-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  
+  &:hover {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
+.video-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  gap: 15px;
+  
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .control-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    .control-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .progress-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 300px;
+    
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+      
+      .progress-fill {
+        height: 100%;
+        background: #3f51b5;
+        width: 0%;
+        transition: width 0.1s ease;
+      }
+      
+      &:hover .progress-fill {
+        background: #5c6bc0;
+      }
+    }
+    
+    .time-display {
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 80px;
+      text-align: center;
+    }
+  }
+}
+
+// ===== RESPONSIVE VIDEO CONTROLS =====
+
+// TV & Large Displays
+.tv-dialog .video-controls-bar {
+  padding: 20px 30px;
+  gap: 20px;
+  
+  .control-button {
+    padding: 12px 18px;
+    min-height: 48px;
+    border-radius: 8px;
+    
+    .control-label {
+      font-size: 14px;
+    }
+    
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+  
+  .progress-container {
+    max-width: 400px;
+    
+    .progress-bar {
+      height: 8px;
+    }
+    
+    .time-display {
+      font-size: 14px;
+      min-width: 100px;
+    }
+  }
+}
+
+// Desktop
+.desktop-dialog .video-controls-bar {
+  padding: 18px 25px;
+  gap: 18px;
+  
+  .control-button {
+    padding: 10px 15px;
+    min-height: 42px;
+    border-radius: 6px;
+    
+    .control-label {
+      font-size: 13px;
+    }
+    
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .progress-container {
+    max-width: 350px;
+    
+    .progress-bar {
+      height: 7px;
+    }
+    
+    .time-display {
+      font-size: 13px;
+      min-width: 90px;
+    }
+  }
+}
+
+// Tablet
+.tablet-dialog .video-controls-bar {
+  padding: 15px 20px;
+  gap: 15px;
+  
+  .control-button {
+    padding: 8px 12px;
+    min-height: 38px;
+    border-radius: 5px;
+    
+    .control-label {
+      font-size: 12px;
+    }
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .progress-container {
+    max-width: 300px;
+    
+    .progress-bar {
+      height: 6px;
+    }
+    
+    .time-display {
+      font-size: 12px;
+      min-width: 80px;
+    }
+  }
+}
+
+// Mobile
+.mobile-dialog .video-controls-bar {
+  padding: 12px 15px;
+  gap: 12px;
+  flex-direction: column;
+  
+  .control-group {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .control-button {
+    padding: 8px 10px;
+    min-height: 36px;
+    border-radius: 4px;
+    flex: 1;
+    justify-content: center;
+    
+    .control-label {
+      font-size: 11px;
+    }
+    
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+  
+  .progress-container {
+    max-width: 100%;
+    order: -1;
+    
+    .progress-bar {
+      height: 5px;
+    }
+    
+    .time-display {
+      font-size: 11px;
+      min-width: 70px;
+    }
+  }
+}
+
+// ===== RESPONSIVE VIDEO PLAYER STYLES =====
+
+// Video-optimized dialog sizing
+.video-player-dialog {
+  .mat-mdc-dialog-container {
+    width: auto !important;
+    max-width: 90vw !important;
+    max-height: 80vh !important; // Ensure container doesn't exceed viewport
+  }
+  
+  .mat-mdc-dialog-surface {
+    width: auto !important;
+    max-width: 90vw !important;
+    max-height: 80vh !important; // Ensure surface doesn't exceed viewport
+  }
+  
+  .video-container {
+    width: auto !important;
+    max-width: 90vw !important;
+    max-height: 75vh !important; // Ensure video container doesn't exceed viewport
+    
+    app-web-player-view {
+      width: auto !important;
+      max-width: 90vw !important;
+      max-height: 75vh !important; // Ensure player doesn't exceed viewport
+    }
+  }
+}
+
+// Ensure video.js respects container boundaries
+.video-player-dialog .video-js {
+  max-height: 75vh !important;
+  height: auto !important;
+  width: auto !important;
+  max-width: 90vw !important;
+  
+  .vjs-tech {
+    max-height: 75vh !important;
+    height: auto !important;
+    width: auto !important;
+    max-width: 90vw !important;
+    object-fit: contain; // Maintain aspect ratio without exceeding container
+  }
+}
+
+// TV & Large Displays
+.tv-dialog .video-player-dialog {
+  .video-js {
+    height: 70vh !important;
+    max-height: 70vh !important;
+  }
+  
+  .video-js .vjs-tech {
+    height: 70vh !important;
+    max-height: 70vh !important;
+  }
+  
+  .vjs-control-bar {
+    height: 60px;
+    
+    .vjs-control {
+      font-size: 18px;
+      padding: 0 15px;
+    }
+  }
+}
+
+// Desktop
+.desktop-dialog .video-player-dialog {
+  .video-js {
+    height: 65vh !important;
+    max-height: 65vh !important;
+  }
+  
+  .video-js .vjs-tech {
+    height: 65vh !important;
+    max-height: 65vh !important;
+  }
+  
+  .vjs-control-bar {
+    height: 50px;
+    
+    .vjs-control {
+      font-size: 16px;
+      padding: 0 12px;
+    }
+  }
+}
+
+// Tablet
+.tablet-dialog .video-player-dialog {
+  .video-js {
+    height: 60vh !important;
+    max-height: 60vh !important;
+  }
+  
+  .video-js .vjs-tech {
+    height: 60vh !important;
+    max-height: 60vh !important;
+  }
+  
+  .vjs-control-bar {
+    height: 45px;
+    
+    .vjs-control {
+      font-size: 15px;
+      padding: 0 10px;
+    }
+  }
+}
+
+// Mobile
+.mobile-dialog .video-player-dialog {
+  .video-js {
+    height: 50vh !important;
+    max-height: 50vh !important;
+  }
+  
+  .video-js .vjs-tech {
+    height: 50vh !important;
+    max-height: 50vh !important;
+  }
+  
+  .vjs-control-bar {
+    height: 40px;
+    
+    .vjs-control {
+      font-size: 14px;
+      padding: 0 8px;
+    }
+  }
+}
+
+// ===== RESPONSIVE FORM STYLES =====
+
+// TV & Large Displays
+.tv-dialog {
+  .mat-form-field {
+    font-size: 18px;
+    
+    .mat-form-field-wrapper {
+      padding-bottom: 25px;
+    }
+    
+    .mat-form-field-label {
+      font-size: 18px;
+    }
+    
+    .mat-form-field-infix {
+      padding: 20px 0;
+      min-height: 60px;
+    }
+  }
+  
+  .mat-input-element {
+    font-size: 18px;
+    padding: 15px;
+  }
+}
+
+// Desktop
+.desktop-dialog {
+  .mat-form-field {
+    font-size: 16px;
+    
+    .mat-form-field-wrapper {
+      padding-bottom: 20px;
+    }
+    
+    .mat-form-field-label {
+      font-size: 16px;
+    }
+    
+    .mat-form-field-infix {
+      padding: 15px 0;
+      min-height: 50px;
+    }
+  }
+  
+  .mat-input-element {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+
+// Tablet
+.tablet-dialog {
+  .mat-form-field {
+    font-size: 15px;
+    
+    .mat-form-field-wrapper {
+      padding-bottom: 18px;
+    }
+    
+    .mat-form-field-label {
+      font-size: 15px;
+    }
+    
+    .mat-form-field-infix {
+      padding: 12px 0;
+      min-height: 45px;
+    }
+  }
+  
+  .mat-input-element {
+    font-size: 15px;
+    padding: 10px;
+  }
+}
+
+// Mobile
+.mobile-dialog {
+  .mat-form-field {
+    font-size: 14px;
+    
+    .mat-form-field-wrapper {
+      padding-bottom: 15px;
+    }
+    
+    .mat-form-field-label {
+      font-size: 14px;
+    }
+    
+    .mat-form-field-infix {
+      padding: 10px 0;
+      min-height: 44px;
+    }
+  }
+  
+  .mat-input-element {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+// ===== RESPONSIVE BUTTON STYLES =====
+
+// TV & Large Displays
+.tv-dialog {
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button {
+    min-height: 50px;
+    padding: 0 30px;
+    font-size: 18px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+}
+
+// Desktop
+.desktop-dialog {
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button {
+    min-height: 45px;
+    padding: 0 25px;
+    font-size: 16px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+}
+
+// Tablet
+.tablet-dialog {
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button {
+    min-height: 42px;
+    padding: 0 20px;
+    font-size: 15px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+}
+
+// Mobile
+.mobile-dialog {
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button {
+    min-height: 44px;
+    padding: 0 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+}
+
+// ===== RESPONSIVE ICON STYLES =====
+
+// TV & Large Displays
+.tv-dialog {
+  .mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+// Desktop
+.desktop-dialog {
+  .mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+// Tablet
+.tablet-dialog {
+  .mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+// Mobile
+.mobile-dialog {
+  .mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ===== RESPONSIVE SPACING =====
+
+// TV & Large Displays
+.tv-dialog {
+  .mat-mdc-dialog-content {
+    margin: 20px 0;
+    
+    > * + * {
+      margin-top: 20px;
+    }
+  }
+}
+
+// Desktop
+.desktop-dialog {
+  .mat-mdc-dialog-content {
+    margin: 18px 0;
+    
+    > * + * {
+      margin-top: 18px;
+    }
+  }
+}
+
+// Tablet
+.tablet-dialog {
+  .mat-mdc-dialog-content {
+    margin: 15px 0;
+    
+    > * + * {
+      margin-top: 15px;
+    }
+  }
+}
+
+// Mobile
+.mobile-dialog {
+  .mat-mdc-dialog-content {
+    margin: 12px 0;
+    
+    > * + * {
+      margin-top: 12px;
+    }
+  }
+}
+
+// ===== RESPONSIVE ANIMATIONS =====
+
+// Smooth transitions for all dialog types
+.mat-mdc-dialog-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mat-mdc-dialog-surface {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ===== ACCESSIBILITY IMPROVEMENTS =====
+
+// Focus management for TV navigation
+.tv-dialog,
+.desktop-dialog {
+  *:focus-visible {
+    outline: 3px solid #3f51b5;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+// Touch-friendly targets for mobile
+.mobile-dialog,
+.tablet-dialog {
+  button,
+  [role="button"],
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+// ===== HIGH CONTRAST MODE SUPPORT =====
+
+@media (prefers-contrast: high) {
+  .mat-mdc-dialog-container {
+    border: 2px solid #fff;
+  }
+  
+  .mat-mdc-dialog-surface {
+    background: #000 !important;
+    color: #fff !important;
+  }
+}
+
+// ===== REDUCED MOTION SUPPORT =====
+
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface {
+    transition: none !important;
+  }
+}
+

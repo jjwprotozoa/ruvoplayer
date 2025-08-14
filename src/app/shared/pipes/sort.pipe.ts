@@ -4,7 +4,9 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
     name: 'sortBy',
     standalone: true,
 })
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class SortPipe implements PipeTransform {
     transform(array: any[], sortType: string): any {
         if (!array || !sortType) {

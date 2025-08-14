@@ -556,20 +556,30 @@ export class XtreamCodeImportComponent implements OnInit {
      * Quick fill examples for common IPTV providers
      */
     fillExample(type: 'ruvoplay' | 'iptv'): void {
-        if (type === 'ruvoplay') {
-            this.form.patchValue({
-                title: 'Ruvo Play IPTV',
-                serverUrl: 'http://ruvoplay.online',
-                username: 'RuvoTest',
-                password: 'a1cba53d1b'
-            });
-        } else if (type === 'iptv') {
-            this.form.patchValue({
-                title: 'My IPTV Provider',
-                serverUrl: 'http://your-server.com',
-                username: 'your_username',
-                password: 'your_password'
-            });
+        if (this.loginMode === 'm3u-link') {
+            // Fill M3U link input field with placeholder values
+            if (type === 'ruvoplay') {
+                this.m3uLink = 'http://ruvoplay.online/get.php?username=XXXX&password=YYYY&type=m3u_plus&output=ts';
+            } else if (type === 'iptv') {
+                this.m3uLink = 'http://your-server.com/get.php?username=XXXX&password=YYYY&type=m3u_plus&output=ts';
+            }
+        } else {
+            // Fill manual Xtream login form fields with placeholder values
+            if (type === 'ruvoplay') {
+                this.form.patchValue({
+                    title: 'Ruvo Play IPTV',
+                    serverUrl: 'http://ruvoplay.online',
+                    username: 'XXXX',
+                    password: 'YYYY'
+                });
+            } else if (type === 'iptv') {
+                this.form.patchValue({
+                    title: 'My IPTV Provider',
+                    serverUrl: 'http://your-server.com',
+                    username: 'XXXX',
+                    password: 'YYYY'
+                });
+            }
         }
     }
 

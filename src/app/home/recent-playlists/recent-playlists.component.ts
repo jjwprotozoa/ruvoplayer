@@ -21,11 +21,13 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { NgxSkeletonLoaderComponent } from 'ngx-skeleton-loader';
-import { BehaviorSubject, combineLatest, map } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, map } from 'rxjs';
+import { isTauri } from '@tauri-apps/api/core';
 import { GLOBAL_FAVORITES_PLAYLIST_ID } from '../../../../shared/constants';
 import { Playlist } from '../../../../shared/playlist.interface';
 import { DataService } from '../../services/data.service';
 import { DatabaseService } from '../../services/database.service';
+import { PlaylistsService } from '../../services/playlists.service';
 import { SortService } from '../../services/sort.service';
 import * as PlaylistActions from '../../state/actions';
 import {
@@ -155,6 +157,7 @@ export class RecentPlaylistsComponent implements OnDestroy {
         private readonly dataService: DataService,
         private readonly router: Router,
         private readonly snackBar: MatSnackBar,
+        private readonly playlistsService: PlaylistsService,
         private readonly sortService: SortService,
         private readonly store: Store,
         private readonly translate: TranslateService
@@ -239,16 +242,25 @@ export class RecentPlaylistsComponent implements OnDestroy {
      * @param playlistId playlist id to remove
      */
     async removePlaylist(playlistId: string) {
-        const deleted = await this.databaseService.deletePlaylist(playlistId);
-        if (deleted) {
+        try {
+            if (isTauri()) {
+                const deleted = await this.databaseService.deletePlaylist(playlistId);
+                // Also remove meta from IndexedDB
+                if (deleted) {
+                    await firstValueFrom(this.playlistsService.deletePlaylist(playlistId));
+                }
+                if (!deleted) return;
+            } else {
+                await firstValueFrom(this.playlistsService.deletePlaylist(playlistId));
+            }
             this.store.dispatch(PlaylistActions.removePlaylist({ playlistId }));
             this.snackBar.open(
                 this.translate.instant('HOME.PLAYLISTS.REMOVE_DIALOG.SUCCESS'),
                 null,
-                {
-                    duration: 2000,
-                }
+                { duration: 2000 }
             );
+        } catch (err) {
+            console.error('Failed to remove playlist', err);
         }
     }
 

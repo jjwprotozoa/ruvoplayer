@@ -1,5 +1,6 @@
-import { StreamFormat } from './stream-format.enum';
+
 import { Language } from './language.enum';
+import { StreamFormat } from './stream-format.enum';
 import { Theme } from './theme.enum';
 
 /**
@@ -28,4 +29,5 @@ export interface Settings {
     vlcPlayerPath: string;
     remoteControl: boolean;
     remoteControlPort: number;
+
 }

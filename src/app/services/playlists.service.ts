@@ -286,7 +286,6 @@ export class PlaylistsService {
         return this.dbService.getByID<Playlist>(DbStores.Playlists, id).pipe(
             map((playlist) => {
                 return (
-                    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                     playlist.playlist.header.raw +
                     '\n' +
                     playlist.playlist.items.map((item) => item.raw).join('\n')

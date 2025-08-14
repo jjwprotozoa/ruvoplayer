@@ -25,16 +25,16 @@ import { Settings, VideoPlayer } from '../settings/settings.interface';
 import { ExternalPlayerInfoDialogComponent } from '../shared/components/external-player-info-dialog/external-player-info-dialog.component';
 import { STORE_KEY } from '../shared/enums/store-keys.enum';
 import { selectCurrentPlaylist } from '../state/selectors';
+import {
+    PlayerDialogData,
+    XtreamTauriPlayerDialogComponent,
+} from '../xtream-tauri/player-dialog/player-dialog.component';
 import { Breadcrumb } from '../xtream/breadcrumb.interface';
 import { CategoryContentViewComponent } from '../xtream/category-content-view/category-content-view.component';
 import { CategoryViewComponent } from '../xtream/category-view/category-view.component';
 import { ContentTypeNavigationItem } from '../xtream/content-type-navigation-item.interface';
 import { ContentType } from '../xtream/content-type.enum';
 import { NavigationBarComponent } from '../xtream/navigation-bar/navigation-bar.component';
-import {
-    PlayerDialogComponent,
-    PlayerDialogData,
-} from '../xtream/player-dialog/player-dialog.component';
 import { PlaylistErrorViewComponent } from '../xtream/playlist-error-view/playlist-error-view.component';
 import { PortalStore } from '../xtream/portal.store';
 import { VodDetailsComponent } from '../xtream/vod-details/vod-details.component';
@@ -387,8 +387,8 @@ export class StalkerMainContainerComponent implements OnInit {
                     vlcPlayerPath: settings?.vlcPlayerPath,
                 });
             } else {
-                this.dialog.open<PlayerDialogComponent, PlayerDialogData>(
-                    PlayerDialogComponent,
+                            this.dialog.open<XtreamTauriPlayerDialogComponent, PlayerDialogData>(
+                XtreamTauriPlayerDialogComponent,
                     {
                         data: {
                             streamUrl,

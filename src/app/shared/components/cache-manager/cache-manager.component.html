@@ -1,0 +1,207 @@
+<div class="cache-manager">
+  <!-- Cache Statistics Card -->
+  <mat-card class="stats-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>analytics</mat-icon>
+        Cache Statistics
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content *ngIf="cacheStats">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Total Images</div>
+          <div class="stat-value">{{ cacheStats.totalImages }}</div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-label">Cache Usage</div>
+          <div class="stat-value">{{ formatBytes(cacheStats.totalSize) }} / {{ formatBytes(cacheStats.maxSize) }}</div>
+          <mat-progress-bar 
+            [value]="getCacheUsagePercentage()" 
+            [color]="getCacheUsageColor()"
+            class="usage-bar">
+          </mat-progress-bar>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-label">Hit Rate</div>
+          <div class="stat-value">{{ cacheStats.hitRate | number:'1.1-1' }}%</div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-label">Cache Hits</div>
+          <div class="stat-value">{{ cacheStats.hitCount }}</div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-label">Cache Misses</div>
+          <div class="stat-value">{{ cacheStats.missCount }}</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Cache Configuration Card -->
+  <mat-card class="config-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        Cache Configuration
+      </mat-card-title>
+      <mat-card-subtitle>
+        Configure how images are cached and managed
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="config-section" *ngIf="!isEditing && cacheConfig">
+        <div class="config-row">
+          <span class="config-label">Maximum Cache Size:</span>
+          <span class="config-value">{{ formatBytes(cacheConfig.maxSize) }}</span>
+        </div>
+        
+        <div class="config-row">
+          <span class="config-label">Maximum Images:</span>
+          <span class="config-value">{{ cacheConfig.maxImages }}</span>
+        </div>
+        
+        <div class="config-row">
+          <span class="config-label">Time to Live:</span>
+          <span class="config-value">{{ cacheConfig.ttl / (60 * 60 * 1000) | number:'1.0-0' }} hours</span>
+        </div>
+        
+        <div class="config-row">
+          <span class="config-label">Image Compression:</span>
+          <span class="config-value">{{ cacheConfig.enableCompression ? 'Enabled' : 'Disabled' }}</span>
+        </div>
+        
+        <div class="config-row" *ngIf="cacheConfig.enableCompression">
+          <span class="config-label">Compression Quality:</span>
+          <span class="config-value">{{ (cacheConfig.compressionQuality * 100) | number:'1.0-0' }}%</span>
+        </div>
+        
+        <div class="config-actions">
+          <button mat-raised-button color="primary" (click)="startEditing()">
+            <mat-icon>edit</mat-icon>
+            Edit Configuration
+          </button>
+        </div>
+      </div>
+
+      <!-- Edit Configuration Form -->
+      <form class="config-form" *ngIf="isEditing && tempConfig" (ngSubmit)="saveConfig()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Maximum Cache Size</mat-label>
+            <mat-select [(ngModel)]="tempConfig.maxSize" name="maxSize">
+              <mat-option *ngFor="let option of getMaxSizeOptions()" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Maximum Images</mat-label>
+            <mat-select [(ngModel)]="tempConfig.maxImages" name="maxImages">
+              <mat-option *ngFor="let option of getMaxImagesOptions()" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Time to Live</mat-label>
+            <mat-select [(ngModel)]="tempConfig.ttl" name="ttl">
+              <mat-option *ngFor="let option of getTtlOptions()" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row checkbox-row">
+          <mat-checkbox [(ngModel)]="tempConfig.enableCompression" name="enableCompression">
+            Enable Image Compression
+          </mat-checkbox>
+        </div>
+
+        <div class="form-row" *ngIf="tempConfig.enableCompression">
+          <div class="slider-container">
+            <label class="slider-label">Compression Quality: {{ getCompressionQualityLabel() }}</label>
+            <mat-slider 
+              [(ngModel)]="tempConfig.compressionQuality" 
+              name="compressionQuality"
+              [min]="0.1" 
+              [max]="1.0" 
+              [step]="0.1"
+              class="quality-slider">
+            </mat-slider>
+            <div class="slider-value">{{ (tempConfig.compressionQuality * 100) | number:'1.0-0' }}%</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancelEditing()">
+            Cancel
+          </button>
+          <button mat-raised-button color="primary" type="submit">
+            Save Configuration
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Cache Management Card -->
+  <mat-card class="management-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>storage</mat-icon>
+        Cache Management
+      </mat-card-title>
+      <mat-card-subtitle>
+        Manage and control the image cache
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="management-actions">
+        <button 
+          mat-raised-button 
+          color="warn" 
+          (click)="clearCache()"
+          [disabled]="!cacheStats || cacheStats.totalImages === 0">
+          <mat-icon>delete_sweep</mat-icon>
+          Clear All Cache
+        </button>
+        
+        <button 
+          mat-raised-button 
+          color="accent" 
+          (click)="loadCacheData()">
+          <mat-icon>refresh</mat-icon>
+          Refresh Statistics
+        </button>
+      </div>
+      
+      <div class="cache-info" *ngIf="cacheStats">
+        <p>
+          <strong>Note:</strong> The image cache automatically manages storage by removing 
+          least recently used images when the cache limit is reached. Images are also 
+          automatically removed after their time-to-live expires.
+        </p>
+        
+        <p>
+          <strong>Benefits:</strong> Cached images load instantly and don't need to be 
+          re-downloaded from the server, improving app performance and reducing bandwidth usage.
+        </p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

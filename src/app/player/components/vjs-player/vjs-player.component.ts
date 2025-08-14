@@ -61,7 +61,7 @@ export class VjsPlayerComponent implements OnInit, OnChanges, OnDestroy {
                     this.player.ready(() => {
                         setTimeout(() => {
                             const playPromise = this.player.play();
-                            if (playPromise && typeof playPromise.then === 'function') {
+                            if (playPromise !== undefined) {
                                 playPromise
                                     .then(() => {
                                         console.log('VideoJS autoplay started successfully');

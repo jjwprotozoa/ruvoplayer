@@ -4,8 +4,8 @@ import { OPEN_MPV_PLAYER, OPEN_VLC_PLAYER } from '../../../shared/ipc-commands';
 import { VideoPlayer } from '../settings/settings.interface';
 import { ExternalPlayerInfoDialogComponent } from '../shared/components/external-player-info-dialog/external-player-info-dialog.component';
 import {
-    PlayerDialogComponent,
     PlayerDialogData,
+    XtreamTauriPlayerDialogComponent,
 } from '../xtream-tauri/player-dialog/player-dialog.component';
 import { DataService } from './data.service';
 import { SettingsStore } from './settings-store.service';
@@ -18,7 +18,7 @@ export class PlayerService {
     private dataService = inject(DataService);
     private settingsStore = inject(SettingsStore);
 
-    openPlayer(
+    async openPlayer(
         streamUrl: string,
         title: string,
         thumbnail?: string,
@@ -46,13 +46,22 @@ export class PlayerService {
                 vlcPlayerPath: this.settingsStore.vlcPlayerPath(),
             });
         } else if (!isLiveContent) {
-            this.dialog.open<PlayerDialogComponent, PlayerDialogData>(
-                PlayerDialogComponent,
+            // Import the ResponsiveSizingService to get proper dimensions
+            const { ResponsiveSizingService } = await import('./responsive-sizing.service');
+            const responsiveService = inject(ResponsiveSizingService);
+            
+            // Get responsive dimensions for the dialog
+            const dialogDimensions = responsiveService.getVideoDialogDimensions();
+            
+            this.dialog.open<XtreamTauriPlayerDialogComponent, PlayerDialogData>(
+                XtreamTauriPlayerDialogComponent,
                 {
                     data: { streamUrl, title },
-                    width: '80%',
-                    maxWidth: '1200px',
-                    maxHeight: '90vh',
+                    width: dialogDimensions.width,
+                    maxWidth: dialogDimensions.maxWidth,
+                    height: dialogDimensions.height,
+                    maxHeight: dialogDimensions.maxHeight,
+                    panelClass: responsiveService.getDialogPanelClass()
                 }
             );
         }

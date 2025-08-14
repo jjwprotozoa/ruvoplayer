@@ -16,7 +16,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { StorageMap } from '@ngx-pwa/local-storage';
-import { Observable, combineLatestWith, filter, map, switchMap } from 'rxjs';
+import { Observable, combineLatestWith, filter, from, map, switchMap } from 'rxjs';
 import { Channel } from '../../../../../shared/channel.interface';
 import {
     CHANNEL_SET_USER_AGENT,
@@ -26,6 +26,7 @@ import {
 } from '../../../../../shared/ipc-commands';
 import { Playlist } from '../../../../../shared/playlist.interface';
 import { DataService } from '../../../services/data.service';
+import { EnhancedPlaylistService } from '../../../services/enhanced-playlist.service';
 import { PlaylistsService } from '../../../services/playlists.service';
 import { SettingsStore } from '../../../services/settings-store.service';
 import { Settings, VideoPlayer } from '../../../settings/settings.interface';
@@ -138,6 +139,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     constructor(
         private activatedRoute: ActivatedRoute,
         private dataService: DataService,
+        private enhancedPlaylistService: EnhancedPlaylistService,
         private ngZone: NgZone,
         private overlay: Overlay,
         private playlistsService: PlaylistsService,
@@ -179,7 +181,12 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
                         })
                     );
                     return this.playlistsService.getPlaylist(params.id).pipe(
-                        map((playlist) => {
+                        map(async (playlist) => {
+                            // Use enhanced playlist service for route management
+                            if (playlist && playlist._id) {
+                                await this.enhancedPlaylistService.loadPlaylist(playlist as Playlist);
+                            }
+                            
                             this.dataService.sendIpcEvent(
                                 CHANNEL_SET_USER_AGENT,
                                 playlist.userAgent
@@ -196,7 +203,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
                                 })
                             );
                             return playlist.playlist.items;
-                        })
+                        }),
+                        switchMap(promise => from(promise))
                     );
                 } else if (queryParams.url) {
                     return this.store.select(selectChannels);

@@ -43,13 +43,13 @@ import { SettingsStore } from '../services/settings-store.service';
 import { VideoPreBufferService } from '../services/video-prebuffer.service';
 import { VideoPlayer } from '../settings/settings.interface';
 import { ExternalPlayerInfoDialogComponent } from '../shared/components/external-player-info-dialog/external-player-info-dialog.component';
+import {
+    PlayerDialogData,
+    XtreamTauriPlayerDialogComponent,
+} from '../xtream-tauri/player-dialog/player-dialog.component';
 import { PlaylistErrorViewComponent } from '../xtream/playlist-error-view/playlist-error-view.component';
 import { Breadcrumb, PortalActions } from './breadcrumb.interface';
 import { ContentTypeNavigationItem } from './content-type-navigation-item.interface';
-import {
-    PlayerDialogComponent,
-    PlayerDialogData,
-} from './player-dialog/player-dialog.component';
 import { PortalStore } from './portal.store';
 import { SerialDetailsComponent } from './serial-details/serial-details.component';
 
@@ -358,8 +358,8 @@ export class XtreamMainContainerComponent implements OnInit {
             });
         } else {
             if (this.selectedContentType !== ContentType.ITV) {
-                this.dialog.open<PlayerDialogComponent, PlayerDialogData>(
-                    PlayerDialogComponent,
+                            this.dialog.open<XtreamTauriPlayerDialogComponent, PlayerDialogData>(
+                XtreamTauriPlayerDialogComponent,
                     {
                         data: { streamUrl, title },
                         width: '80%',
@@ -399,7 +399,7 @@ export class XtreamMainContainerComponent implements OnInit {
         } else if (player === VideoPlayer.VLC) {
             this.dataService.sendIpcEvent(OPEN_VLC_PLAYER, { url: streamUrl });
         } else {
-            this.dialog.open(PlayerDialogComponent, {
+            this.dialog.open(XtreamTauriPlayerDialogComponent, {
                 data: { streamUrl, player, title: episode.title },
                 width: '80%',
             });
