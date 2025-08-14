@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { isTauri } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import { PlaylistMeta } from '../shared/playlist-meta.type';
 
@@ -48,8 +49,18 @@ export class DatabaseService {
     private static db: Database | null = null;
 
     async getConnection(): Promise<Database> {
+        // Check if we're in a Tauri environment before trying to use the SQL plugin
+        if (!isTauri()) {
+            throw new Error('Database operations are only available in Tauri desktop environment');
+        }
+
         if (!DatabaseService.db) {
-            DatabaseService.db = await Database.load('sqlite:database.db');
+            try {
+                DatabaseService.db = await Database.load('sqlite:database.db');
+            } catch (error) {
+                console.error('Failed to load database:', error);
+                throw new Error('Failed to initialize database connection');
+            }
         }
         return DatabaseService.db;
     }
@@ -60,6 +71,12 @@ export class DatabaseService {
      * @returns True if deletion was successful
      */
     async deletePlaylist(playlistId: string): Promise<boolean> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
         try {
             const db = await this.getConnection();
 
@@ -130,6 +147,12 @@ export class DatabaseService {
     }
 
     async updateXtreamPlaylist(playlist: any): Promise<boolean> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
         try {
             const db = await this.getConnection();
             await db.execute('UPDATE playlists SET name = ? WHERE id = ?', [
@@ -150,6 +173,12 @@ export class DatabaseService {
         password?: string;
         serverUrl?: string;
     }): Promise<boolean> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
         try {
             const db = await this.getConnection();
             const updateFields: string[] = ['name = ?'];
@@ -185,23 +214,45 @@ export class DatabaseService {
         playlistId: string,
         type: 'live' | 'movies' | 'series'
     ): Promise<boolean> {
-        const db = await this.getConnection();
-        const result = await db.select<XCategoryFromDb[]>(
-            'SELECT * FROM categories WHERE playlist_id = ? AND type = ?',
-            [playlistId, type]
-        );
-        return result.length > 0;
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
+        try {
+            const db = await this.getConnection();
+            const result = await db.select<XCategoryFromDb[]>(
+                'SELECT * FROM categories WHERE playlist_id = ? AND type = ?',
+                [playlistId, type]
+            );
+            return result.length > 0;
+        } catch (error) {
+            console.error('Error checking categories:', error);
+            return false;
+        }
     }
 
     async getXtreamCategories(
         playlistId: string,
         type: 'live' | 'movies' | 'series'
     ): Promise<XCategoryFromDb[]> {
-        const db = await this.getConnection();
-        return await db.select<XCategoryFromDb[]>(
-            'SELECT * FROM categories WHERE playlist_id = ? AND type = ? ORDER BY name COLLATE NOCASE',
-            [playlistId, type]
-        );
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
+        try {
+            const db = await this.getConnection();
+            return await db.select<XCategoryFromDb[]>(
+                'SELECT * FROM categories WHERE playlist_id = ? AND type = ? ORDER BY name COLLATE NOCASE',
+                [playlistId, type]
+            );
+        } catch (error) {
+            console.error('Error getting categories:', error);
+            return [];
+        }
     }
 
     async saveXtreamCategories(
@@ -209,12 +260,23 @@ export class DatabaseService {
         categories: any[],
         type: 'live' | 'movies' | 'series'
     ): Promise<void> {
-        const db = await this.getConnection();
-        for (const category of categories) {
-            await db.execute(
-                'INSERT INTO categories (playlist_id, name, type, xtream_id) VALUES (?, ?, ?, ?)',
-                [playlistId, category.category_name, type, category.category_id]
-            );
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return;
+        }
+
+        try {
+            const db = await this.getConnection();
+            for (const category of categories) {
+                await db.execute(
+                    'INSERT INTO categories (playlist_id, name, type, xtream_id) VALUES (?, ?, ?, ?)',
+                    [playlistId, category.category_name, type, category.category_id]
+                );
+            }
+        } catch (error) {
+            console.error('Error saving categories:', error);
+            throw error;
         }
     }
 
@@ -222,32 +284,54 @@ export class DatabaseService {
         playlistId: string,
         type: 'live' | 'movie' | 'series'
     ): Promise<boolean> {
-        const db = await this.getConnection();
-        const result = await db.select(
-            `SELECT c.* FROM content c 
-             JOIN categories cat ON c.category_id = cat.id 
-             WHERE cat.playlist_id = ? AND c.type = ?
-             ORDER BY c.added`,
-            [playlistId, type]
-        );
-        return (result as any[]).length > 0;
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
+        try {
+            const db = await this.getConnection();
+            const result = await db.select(
+                `SELECT c.* FROM content c 
+                 JOIN categories cat ON c.category_id = cat.id 
+                 WHERE cat.playlist_id = ? AND c.type = ?
+                 ORDER BY c.added`,
+                [playlistId, type]
+            );
+            return (result as any[]).length > 0;
+        } catch (error) {
+            console.error('Error checking content:', error);
+            return false;
+        }
     }
 
     async getXtreamContent(
         playlistId: string,
         type: 'live' | 'movie' | 'series'
     ): Promise<XtreamContent[]> {
-        const db = await this.getConnection();
-        return await db.select(
-            `SELECT 
-                c.id, c.category_id, c.title, c.rating, 
-                c.added, c.poster_url, c.xtream_id, c.type
-            FROM content c 
-            INNER JOIN categories cat ON c.category_id = cat.id 
-            WHERE cat.playlist_id = ? AND c.type = ?
-            ORDER BY c.added DESC`,
-            [playlistId, type]
-        );
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
+        try {
+            const db = await this.getConnection();
+            return await db.select(
+                `SELECT 
+                    c.id, c.category_id, c.title, c.rating, 
+                    c.added, c.poster_url, c.xtream_id, c.type
+                FROM content c 
+                INNER JOIN categories cat ON c.category_id = cat.id 
+                WHERE cat.playlist_id = ? AND c.type = ?
+                ORDER BY c.added DESC`,
+                [playlistId, type]
+            );
+        } catch (error) {
+            console.error('Error getting content:', error);
+            return [];
+        }
     }
 
     async saveXtreamContent(
@@ -256,25 +340,36 @@ export class DatabaseService {
         type: 'live' | 'movie' | 'series',
         onProgress?: (count: number) => void
     ): Promise<number> {
-        const db = await this.getConnection();
-        const dbType =
-            type === 'series' ? 'series' : type === 'movie' ? 'movies' : 'live';
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return 0;
+        }
 
-        const categories = await db.select<{ id: number; xtream_id: number }[]>(
-            'SELECT id, xtream_id FROM categories WHERE playlist_id = ? AND type = ?',
-            [playlistId, dbType]
-        );
+        try {
+            const db = await this.getConnection();
+            const dbType =
+                type === 'series' ? 'series' : type === 'movie' ? 'movies' : 'live';
 
-        const categoryMap = new Map(
-            categories.map((c) => [parseInt(c.xtream_id.toString()), c.id])
-        );
+            const categories = await db.select<{ id: number; xtream_id: number }[]>(
+                'SELECT id, xtream_id FROM categories WHERE playlist_id = ? AND type = ?',
+                [playlistId, dbType]
+            );
 
-        const bulkInsertData = this.prepareBulkInsertData(
-            streams,
-            type,
-            categoryMap
-        );
-        return await this.executeBulkInsert(db, bulkInsertData, onProgress);
+            const categoryMap = new Map(
+                categories.map((c) => [parseInt(c.xtream_id.toString()), c.id])
+            );
+
+            const bulkInsertData = this.prepareBulkInsertData(
+                streams,
+                type,
+                categoryMap
+            );
+            return await this.executeBulkInsert(db, bulkInsertData, onProgress);
+        } catch (error) {
+            console.error('Error saving content:', error);
+            return 0;
+        }
     }
 
     async searchXtreamContent(
@@ -282,56 +377,84 @@ export class DatabaseService {
         searchTerm: string,
         types: string[]
     ): Promise<XtreamContent[]> {
-        const db = await this.getConnection();
-        const placeholders = types.map(() => '?').join(',');
-        return await db.select(
-            `SELECT c.* FROM content c 
-             JOIN categories cat ON c.category_id = cat.id 
-             WHERE (c.title LIKE ?)
-             AND cat.playlist_id = ?
-             AND c.type IN (${placeholders})
-             LIMIT 50`,
-            [`%${searchTerm}%`, playlistId, ...types]
-        );
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
+        try {
+            const db = await this.getConnection();
+            const placeholders = types.map(() => '?').join(',');
+            return await db.select(
+                `SELECT c.* FROM content c 
+                 JOIN categories cat ON c.category_id = cat.id 
+                 WHERE (c.title LIKE ?)
+                 AND cat.playlist_id = ?
+                 AND c.type IN (${placeholders})
+                 LIMIT 50`,
+                [`%${searchTerm}%`, playlistId, ...types]
+            );
+        } catch (error) {
+            console.error('Error searching content:', error);
+            return [];
+        }
     }
 
     async globalSearchContent(
         searchTerm: string,
         types: string[]
     ): Promise<GlobalSearchResult[]> {
-        const db = await this.getConnection();
-        const placeholders = types.map(() => '?').join(',');
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
 
-        // Use a materialized subquery for better performance
-        return await db.select(
-            `
-            WITH filtered_content AS (
-                SELECT 
-                    c.id,
-                    c.category_id,
-                    c.title,
-                    c.rating,
-                    c.added,
-                    c.poster_url,
-                    c.xtream_id,
-                    c.type,
-                    cat.playlist_id,
-                    p.name as playlist_name
-                FROM content c 
-                INNER JOIN categories cat ON c.category_id = cat.id 
-                INNER JOIN playlists p ON cat.playlist_id = p.id
-                WHERE c.type IN (${placeholders})
-            )
-            SELECT * FROM filtered_content
-            WHERE LOWER(title) LIKE LOWER(?)
-            ORDER BY title
-            LIMIT 50
-        `,
-            [...types, `%${searchTerm}%`]
-        );
+        try {
+            const db = await this.getConnection();
+            const placeholders = types.map(() => '?').join(',');
+
+            // Use a materialized subquery for better performance
+            return await db.select(
+                `
+                WITH filtered_content AS (
+                    SELECT 
+                        c.id,
+                        c.category_id,
+                        c.title,
+                        c.rating,
+                        c.added,
+                        c.poster_url,
+                        c.xtream_id,
+                        c.type,
+                        cat.playlist_id,
+                        p.name as playlist_name
+                    FROM content c 
+                    INNER JOIN categories cat ON c.category_id = cat.id 
+                    INNER JOIN playlists p ON cat.playlist_id = p.id
+                    WHERE c.type IN (${placeholders})
+                )
+                SELECT * FROM filtered_content
+                WHERE LOWER(title) LIKE LOWER(?)
+                ORDER BY title
+                LIMIT 50
+            `,
+                [...types, `%${searchTerm}%`]
+            );
+        } catch (error) {
+            console.error('Error in global search:', error);
+            return [];
+        }
     }
 
     async getGlobalRecentlyViewed(): Promise<GlobalRecentItem[]> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
         try {
             console.log('Starting getGlobalRecentlyViewed query...');
             const db = await this.getConnection();
@@ -376,6 +499,12 @@ export class DatabaseService {
     }
 
     async clearGlobalRecentlyViewed(): Promise<void> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return;
+        }
+
         try {
             const db = await this.getConnection();
             await db.execute('DELETE FROM recently_viewed');
@@ -386,27 +515,49 @@ export class DatabaseService {
     }
 
     async getPlaylistById(playlistId: string): Promise<XtreamPlaylist | null> {
-        const db = await this.getConnection();
-        const results = await db.select<XtreamPlaylist[]>(
-            'SELECT * FROM playlists WHERE id = ?',
-            [playlistId]
-        );
-        return results[0] || null;
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return null;
+        }
+
+        try {
+            const db = await this.getConnection();
+            const results = await db.select<XtreamPlaylist[]>(
+                'SELECT * FROM playlists WHERE id = ?',
+                [playlistId]
+            );
+            return results[0] || null;
+        } catch (error) {
+            console.error('Error getting playlist by ID:', error);
+            return null;
+        }
     }
 
     async createPlaylist(playlist: PlaylistMeta): Promise<void> {
-        const db = await this.getConnection();
-        await db.execute(
-            'INSERT INTO playlists (id, name, serverUrl, username, password, type) VALUES (?, ?, ?, ?, ?, ?)',
-            [
-                playlist._id,
-                playlist.title,
-                playlist.serverUrl,
-                playlist.username,
-                playlist.password,
-                'xtream',
-            ]
-        );
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return;
+        }
+
+        try {
+            const db = await this.getConnection();
+            await db.execute(
+                'INSERT INTO playlists (id, name, serverUrl, username, password, type) VALUES (?, ?, ?, ?, ?, ?)',
+                [
+                    playlist._id,
+                    playlist.title,
+                    playlist.serverUrl,
+                    playlist.username,
+                    playlist.password,
+                    'xtream',
+                ]
+            );
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            throw error;
+        }
     }
 
     private prepareBulkInsertData(

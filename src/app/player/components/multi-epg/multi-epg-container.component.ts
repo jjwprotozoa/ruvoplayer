@@ -17,7 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, isTauri } from '@tauri-apps/api/core';
 import { addDays, differenceInMinutes, format, parse, subDays } from 'date-fns';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Channel } from '../../../../../shared/channel.interface';
@@ -154,9 +154,15 @@ export class MultiEpgContainerComponent
         return program.start + program.title;
     }
 
-    async requestPrograms(): Promise<void> {
-        const today = new Date();
-        const startTime = format(subDays(today, 1), 'yyyyMMddHHmmss +0000');
+    private async requestPrograms(): Promise<void> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('EPG operations are only available in Tauri desktop environment');
+            return;
+        }
+
+        const today = format(new Date(), 'yyyyMMdd');
+        const startTime = format(new Date(), 'yyyyMMddHHmmss +0000');
         const endTime = format(addDays(today, 2), 'yyyyMMddHHmmss +0000');
 
         try {

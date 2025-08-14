@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, isTauri } from '@tauri-apps/api/core';
 import { readTextFile } from '@tauri-apps/plugin-fs';
 import { fetch } from '@tauri-apps/plugin-http';
 import { parse } from 'iptv-playlist-parser';
@@ -74,6 +74,12 @@ export class TauriService extends DataService {
                 }
             );
         } else if (type === 'OPEN_MPV_PLAYER') {
+            // Check if we're in a Tauri environment
+            if (!isTauri()) {
+                console.warn('MPV player operations are only available in Tauri desktop environment');
+                return;
+            }
+
             const data = payload as any;
             return invoke('open_in_mpv', {
                 url: data.url,
@@ -91,6 +97,12 @@ export class TauriService extends DataService {
                 throw error;
             });
         } else if (type === 'OPEN_VLC_PLAYER') {
+            // Check if we're in a Tauri environment
+            if (!isTauri()) {
+                console.warn('VLC player operations are only available in Tauri desktop environment');
+                return;
+            }
+
             const data = payload as any;
             return invoke('open_in_vlc', {
                 url: data.url,
