@@ -12,7 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateModule } from '@ngx-translate/core';
-import { open } from '@tauri-apps/plugin-shell';
+import { isTauri } from '@tauri-apps/api/core';
 import { NgxWhatsNewModule } from 'ngx-whats-new';
 import { HomeComponent } from '../../../home/home.component';
 import { DataService } from '../../../services/data.service';
@@ -134,9 +134,18 @@ export class HeaderComponent implements OnInit {
      * @param url url to open
      */
     async openUrl(url: string): Promise<void> {
-        if (this.isTauri) {
-            await open(url);
+        if (isTauri()) {
+            try {
+                // Dynamically import the Tauri shell plugin only when needed
+                const { open } = await import('@tauri-apps/plugin-shell');
+                await open(url);
+            } catch (error) {
+                console.error('Failed to open external link:', error);
+                // Fallback to window.open
+                window.open(url, '_blank');
+            }
         } else {
+            // Fallback for web environment
             window.open(url, '_blank');
         }
     }

@@ -82,7 +82,7 @@ export class VodDetailsComponent implements OnInit, OnDestroy {
     private addToRecentlyViewed() {
         this.xtreamStore.addRecentItem({
             contentId: this.route.snapshot.params.vodId,
-            playlist: this.xtreamStore.currentPlaylist,
+            playlist: { id: this.xtreamStore.currentPlaylist().id },
         });
     }
 }

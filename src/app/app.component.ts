@@ -5,21 +5,16 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { isTauri } from '@tauri-apps/api/core';
-import { ask } from '@tauri-apps/plugin-dialog';
-import { relaunch } from '@tauri-apps/plugin-process';
-import { check } from '@tauri-apps/plugin-updater';
 import { ModalWindow } from 'ngx-whats-new/lib/modal-window.interface';
-import { firstValueFrom } from 'rxjs';
 import * as semver from 'semver';
 import { IpcCommand } from '../../shared/ipc-command.class';
 import {
-    AUTO_UPDATE_PLAYLISTS,
     ERROR,
     OPEN_FILE,
     SETTINGS_UPDATE,
     SHOW_WHATS_NEW,
     VIEW_ADD_PLAYLIST,
-    VIEW_SETTINGS,
+    VIEW_SETTINGS
 } from '../../shared/ipc-commands';
 import { DataService } from './services/data.service';
 import { EpgService } from './services/epg.service';
@@ -124,56 +119,73 @@ export class AppComponent {
 
     async checkForUpdates() {
         if (isTauri()) {
-            const update = await check();
-            if (update?.available) {
-                console.log(
-                    `found update ${update.version} from ${update.date} with notes ${update.body}`
-                );
-                let downloaded = 0;
-                let contentLength = 0;
+            try {
+                // Dynamically import Tauri plugins only when needed
+                const [checkModule, askModule, relaunchModule] = await Promise.all([
+                    import('@tauri-apps/plugin-updater'),
+                    import('@tauri-apps/plugin-dialog'),
+                    import('@tauri-apps/plugin-process')
+                ]);
 
-                const wantsUpdate = await ask(
-                    `New version ${update.version} is available. Do you want to update now?`
-                );
+                const { check } = checkModule;
+                const { ask } = askModule;
+                const { relaunch } = relaunchModule;
 
-                if (wantsUpdate) {
-                    await update.downloadAndInstall((event) => {
-                        switch (event.event) {
-                            case 'Started':
-                                contentLength = event.data.contentLength;
-                                console.log(
-                                    `started downloading ${event.data.contentLength} bytes`
-                                );
-                                break;
-                            case 'Progress':
-                                downloaded += event.data.chunkLength;
-                                console.log(
-                                    `downloaded ${downloaded} from ${contentLength}`
-                                );
-                                break;
-                            case 'Finished':
-                                console.log('download finished');
-                                break;
-                        }
-                    });
+                const update = await check();
+                if (update?.available) {
+                    console.log(
+                        `found update ${update.version} from ${update.date} with notes ${update.body}`
+                    );
+                    let downloaded = 0;
+                    let contentLength = 0;
 
-                    console.log('update installed');
-                    await relaunch();
+                    const wantsUpdate = await ask(
+                        `New version ${update.version} is available. Do you want to update now?`
+                    );
+
+                    if (wantsUpdate) {
+                        await update.downloadAndInstall((event) => {
+                            switch (event.event) {
+                                case 'Started':
+                                    contentLength = event.data.contentLength;
+                                    console.log(
+                                        `started downloading ${event.data.contentLength} bytes`
+                                    );
+                                    break;
+                                case 'Progress':
+                                    downloaded += event.data.chunkLength;
+                                    console.log(
+                                        `downloaded ${downloaded} from ${contentLength}`
+                                    );
+                                    break;
+                                case 'Finished':
+                                    console.log('download finished');
+                                    break;
+                            }
+                        });
+
+                        console.log('update installed');
+                        await relaunch();
+                    }
                 }
+            } catch (error) {
+                console.error('Failed to check for updates:', error);
             }
         }
     }
 
     async triggerAutoUpdateMechanism() {
         if (isTauri()) {
-            const playlistForAutoUpdate = await firstValueFrom(
-                this.playlistService.getPlaylistsForAutoUpdate()
-            );
-            if (playlistForAutoUpdate && playlistForAutoUpdate.length > 0)
-                this.dataService.sendIpcEvent(
-                    AUTO_UPDATE_PLAYLISTS,
-                    playlistForAutoUpdate
-                );
+            try {
+                // Dynamically import the updater plugin
+                const { check } = await import('@tauri-apps/plugin-updater');
+                const update = await check();
+                if (update?.available) {
+                    console.log('Update available:', update.version);
+                }
+            } catch (error) {
+                console.error('Failed to trigger auto update:', error);
+            }
         }
     }
 

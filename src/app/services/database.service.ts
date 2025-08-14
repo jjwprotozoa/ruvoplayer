@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { isTauri } from '@tauri-apps/api/core';
-import Database from '@tauri-apps/plugin-sql';
 import { PlaylistMeta } from '../shared/playlist-meta.type';
 
 export interface XCategoryFromDb {
@@ -42,11 +41,33 @@ export interface GlobalRecentItem extends XtreamContent {
     viewed_at: string;
 }
 
+// Define a proper interface for the Database type
+interface Database {
+    execute(sql: string, params?: any[]): Promise<any>;
+    select<T = any>(sql: string, params?: any[]): Promise<T[][]>; // Tauri returns nested arrays
+    load(path: string): Promise<Database>;
+}
+
 @Injectable({
     providedIn: 'root',
 })
 export class DatabaseService {
     private static db: Database | null = null;
+    private static DatabaseClass: any = null;
+
+    private async getDatabaseClass(): Promise<any> {
+        if (!DatabaseService.DatabaseClass) {
+            try {
+                // Dynamically import the Tauri SQL plugin only when needed
+                const module = await import('@tauri-apps/plugin-sql');
+                DatabaseService.DatabaseClass = module.default;
+            } catch (error) {
+                console.error('Failed to load Tauri SQL plugin:', error);
+                throw new Error('Tauri SQL plugin not available');
+            }
+        }
+        return DatabaseService.DatabaseClass;
+    }
 
     async getConnection(): Promise<Database> {
         // Check if we're in a Tauri environment before trying to use the SQL plugin
@@ -56,7 +77,8 @@ export class DatabaseService {
 
         if (!DatabaseService.db) {
             try {
-                DatabaseService.db = await Database.load('sqlite:database.db');
+                const DatabaseClass = await this.getDatabaseClass();
+                DatabaseService.db = await DatabaseClass.load('sqlite:database.db');
             } catch (error) {
                 console.error('Failed to load database:', error);
                 throw new Error('Failed to initialize database connection');
@@ -103,19 +125,23 @@ export class DatabaseService {
                 );
 
                 if (categories.length > 0) {
-                    // Create a list of category IDs for the IN clause
-                    const categoryIds = categories.map((cat) => cat.id);
+                    // Handle nested array result from Tauri SQL plugin
+                    const flattenedCategories = categories.flat() as unknown as { id: number }[];
+                    if (flattenedCategories.length > 0) {
+                        // Create a list of category IDs for the IN clause
+                        const categoryIds = flattenedCategories.map((cat) => cat.id);
 
-                    // Delete content in batches if there are many categories
-                    const BATCH_SIZE = 20;
-                    for (let i = 0; i < categoryIds.length; i += BATCH_SIZE) {
-                        const batchIds = categoryIds.slice(i, i + BATCH_SIZE);
-                        const placeholders = batchIds.map(() => '?').join(',');
+                        // Delete content in batches if there are many categories
+                        const BATCH_SIZE = 20;
+                        for (let i = 0; i < categoryIds.length; i += BATCH_SIZE) {
+                            const batchIds = categoryIds.slice(i, i + BATCH_SIZE);
+                            const placeholders = batchIds.map(() => '?').join(',');
 
-                        await db.execute(
-                            `DELETE FROM content WHERE category_id IN (${placeholders})`,
-                            batchIds
-                        );
+                            await db.execute(
+                                `DELETE FROM content WHERE category_id IN (${placeholders})`,
+                                batchIds
+                            );
+                        }
                     }
                 }
 
@@ -245,71 +271,37 @@ export class DatabaseService {
 
         try {
             const db = await this.getConnection();
-            return await db.select<XCategoryFromDb[]>(
-                'SELECT * FROM categories WHERE playlist_id = ? AND type = ? ORDER BY name COLLATE NOCASE',
+            const categories = await db.select<{ id: number }[]>(
+                'SELECT id FROM categories WHERE playlist_id = ? AND type = ?',
                 [playlistId, type]
             );
+            
+            // Handle nested array result from Tauri SQL plugin
+            const flattenedCategories = categories.flat() as unknown as { id: number }[];
+            const categoryIds = flattenedCategories.map((cat) => cat.id);
+            
+            if (categoryIds.length === 0) {
+                return [];
+            }
+
+            const placeholders = categoryIds.map(() => '?').join(',');
+            const result = await db.select<XCategoryFromDb[]>(
+                `SELECT * FROM categories WHERE id IN (${placeholders})`,
+                categoryIds
+            );
+            
+            // Flatten the nested array result
+            return result.flat() as unknown as XCategoryFromDb[];
         } catch (error) {
             console.error('Error getting categories:', error);
             return [];
         }
     }
 
-    async saveXtreamCategories(
+    async getXtreamCategoriesByType(
         playlistId: string,
-        categories: any[],
         type: 'live' | 'movies' | 'series'
-    ): Promise<void> {
-        // Check if we're in a Tauri environment
-        if (!isTauri()) {
-            console.warn('Database operations are only available in Tauri desktop environment');
-            return;
-        }
-
-        try {
-            const db = await this.getConnection();
-            for (const category of categories) {
-                await db.execute(
-                    'INSERT INTO categories (playlist_id, name, type, xtream_id) VALUES (?, ?, ?, ?)',
-                    [playlistId, category.category_name, type, category.category_id]
-                );
-            }
-        } catch (error) {
-            console.error('Error saving categories:', error);
-            throw error;
-        }
-    }
-
-    async hasXtreamContent(
-        playlistId: string,
-        type: 'live' | 'movie' | 'series'
-    ): Promise<boolean> {
-        // Check if we're in a Tauri environment
-        if (!isTauri()) {
-            console.warn('Database operations are only available in Tauri desktop environment');
-            return false;
-        }
-
-        try {
-            const db = await this.getConnection();
-            const result = await db.select(
-                `SELECT c.* FROM content c 
-                 JOIN categories cat ON c.category_id = cat.id 
-                 WHERE cat.playlist_id = ? AND c.type = ?
-                 ORDER BY c.added`,
-                [playlistId, type]
-            );
-            return (result as any[]).length > 0;
-        } catch (error) {
-            console.error('Error checking content:', error);
-            return false;
-        }
-    }
-
-    async getXtreamContent(
-        playlistId: string,
-        type: 'live' | 'movie' | 'series'
-    ): Promise<XtreamContent[]> {
+    ): Promise<XCategoryFromDb[]> {
         // Check if we're in a Tauri environment
         if (!isTauri()) {
             console.warn('Database operations are only available in Tauri desktop environment');
@@ -318,18 +310,15 @@ export class DatabaseService {
 
         try {
             const db = await this.getConnection();
-            return await db.select(
-                `SELECT 
-                    c.id, c.category_id, c.title, c.rating, 
-                    c.added, c.poster_url, c.xtream_id, c.type
-                FROM content c 
-                INNER JOIN categories cat ON c.category_id = cat.id 
-                WHERE cat.playlist_id = ? AND c.type = ?
-                ORDER BY c.added DESC`,
+            const result = await db.select<XCategoryFromDb[]>(
+                'SELECT * FROM categories WHERE playlist_id = ? AND type = ?',
                 [playlistId, type]
             );
+            
+            // Flatten the nested array result
+            return result.flat() as unknown as XCategoryFromDb[];
         } catch (error) {
-            console.error('Error getting content:', error);
+            console.error('Error getting categories by type:', error);
             return [];
         }
     }
@@ -348,24 +337,47 @@ export class DatabaseService {
 
         try {
             const db = await this.getConnection();
-            const dbType =
-                type === 'series' ? 'series' : type === 'movie' ? 'movies' : 'live';
+            let insertedCount = 0;
 
-            const categories = await db.select<{ id: number; xtream_id: number }[]>(
-                'SELECT id, xtream_id FROM categories WHERE playlist_id = ? AND type = ?',
-                [playlistId, dbType]
-            );
+            for (const stream of streams) {
+                try {
+                    const categories = await db.select<{ id: number; xtream_id: number }[]>(
+                        'SELECT id, xtream_id FROM categories WHERE playlist_id = ? AND type = ? AND xtream_id = ?',
+                        [playlistId, type, stream.category_id]
+                    );
+                    
+                    // Handle nested array result from Tauri SQL plugin
+                    const flattenedCategories = categories.flat() as unknown as { id: number; xtream_id: number }[];
+                    const categoryMap = new Map(
+                        flattenedCategories.map((c) => [parseInt(c.xtream_id.toString()), c.id])
+                    );
 
-            const categoryMap = new Map(
-                categories.map((c) => [parseInt(c.xtream_id.toString()), c.id])
-            );
+                    const categoryId = categoryMap.get(stream.category_id);
+                    if (categoryId) {
+                        await db.execute(
+                            'INSERT OR REPLACE INTO content (category_id, title, rating, added, poster_url, xtream_id, type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            [
+                                categoryId,
+                                stream.name || stream.title || '',
+                                stream.rating || '',
+                                stream.added || '',
+                                stream.stream_icon || stream.poster_path || '',
+                                stream.stream_id || stream.id,
+                                type,
+                            ]
+                        );
+                        insertedCount++;
+                    }
 
-            const bulkInsertData = this.prepareBulkInsertData(
-                streams,
-                type,
-                categoryMap
-            );
-            return await this.executeBulkInsert(db, bulkInsertData, onProgress);
+                    if (onProgress) {
+                        onProgress(insertedCount);
+                    }
+                } catch (error) {
+                    console.error('Error inserting stream:', error);
+                }
+            }
+
+            return insertedCount;
         } catch (error) {
             console.error('Error saving content:', error);
             return 0;
@@ -386,7 +398,7 @@ export class DatabaseService {
         try {
             const db = await this.getConnection();
             const placeholders = types.map(() => '?').join(',');
-            return await db.select(
+            const result = await db.select(
                 `SELECT c.* FROM content c 
                  JOIN categories cat ON c.category_id = cat.id 
                  WHERE (c.title LIKE ?)
@@ -395,6 +407,9 @@ export class DatabaseService {
                  LIMIT 50`,
                 [`%${searchTerm}%`, playlistId, ...types]
             );
+            
+            // Flatten the nested array result
+            return result.flat() as unknown as XtreamContent[];
         } catch (error) {
             console.error('Error searching content:', error);
             return [];
@@ -412,11 +427,9 @@ export class DatabaseService {
         }
 
         try {
-            const db = await this.getConnection();
             const placeholders = types.map(() => '?').join(',');
-
-            // Use a materialized subquery for better performance
-            return await db.select(
+            const db = await this.getConnection();
+            const result = await db.select(
                 `
                 WITH filtered_content AS (
                     SELECT 
@@ -431,7 +444,7 @@ export class DatabaseService {
                         cat.playlist_id,
                         p.name as playlist_name
                     FROM content c 
-                    INNER JOIN categories cat ON c.category_id = cat.id 
+                    INNER JOIN categories cat ON c.category_id = cat.id
                     INNER JOIN playlists p ON cat.playlist_id = p.id
                     WHERE c.type IN (${placeholders})
                 )
@@ -442,6 +455,9 @@ export class DatabaseService {
             `,
                 [...types, `%${searchTerm}%`]
             );
+            
+            // Flatten the nested array result
+            return result.flat() as unknown as GlobalSearchResult[];
         } catch (error) {
             console.error('Error in global search:', error);
             return [];
@@ -467,7 +483,7 @@ export class DatabaseService {
             `);
             console.log('Tables check:', tableCheck);
 
-            const items = await db.select<GlobalRecentItem[]>(`
+            const items = await db.select(`
                 SELECT 
                     c.id,
                     c.category_id,
@@ -487,14 +503,12 @@ export class DatabaseService {
                 ORDER BY rv.viewed_at DESC
                 LIMIT 100
             `);
-
-            console.log('Query executed, items found:', items?.length);
-            console.log('First few items:', items?.slice(0, 3));
-
-            return items || [];
+            
+            // Flatten the nested array result
+            return items.flat() as unknown as GlobalRecentItem[] || [];
         } catch (error) {
-            console.error('Detailed error in getGlobalRecentlyViewed:', error);
-            throw error; // Let's throw the error to see it in the component
+            console.error('Error getting global recently viewed:', error);
+            return [];
         }
     }
 
@@ -527,7 +541,10 @@ export class DatabaseService {
                 'SELECT * FROM playlists WHERE id = ?',
                 [playlistId]
             );
-            return results[0] || null;
+            
+            // Handle nested array result from Tauri SQL plugin
+            const flattenedResults = results.flat() as unknown as XtreamPlaylist[];
+            return flattenedResults[0] || null;
         } catch (error) {
             console.error('Error getting playlist by ID:', error);
             return null;
@@ -631,5 +648,110 @@ export class DatabaseService {
         }
 
         return totalInserted;
+    }
+
+    async getXtreamPlaylists(): Promise<XtreamPlaylist[]> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
+        try {
+            const db = await this.getConnection();
+            const results = await db.select(
+                'SELECT id, name, serverUrl, username, password, type FROM playlists WHERE type = "xtream"'
+            );
+            
+            // Flatten the nested array result
+            return results.flat() as unknown as XtreamPlaylist[];
+        } catch (error) {
+            console.error('Error getting Xtream playlists:', error);
+            return [];
+        }
+    }
+
+    async saveXtreamCategories(
+        playlistId: string,
+        categories: any[],
+        type: 'live' | 'movies' | 'series'
+    ): Promise<void> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return;
+        }
+
+        try {
+            const db = await this.getConnection();
+            for (const category of categories) {
+                await db.execute(
+                    'INSERT INTO categories (playlist_id, name, type, xtream_id) VALUES (?, ?, ?, ?)',
+                    [playlistId, category.category_name, type, category.category_id]
+                );
+            }
+        } catch (error) {
+            console.error('Error saving categories:', error);
+        }
+    }
+
+    async hasXtreamContent(
+        playlistId: string,
+        type: 'live' | 'movie' | 'series'
+    ): Promise<boolean> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return false;
+        }
+
+        try {
+            const db = await this.getConnection();
+            const result = await db.select(
+                `SELECT c.* FROM content c 
+                 JOIN categories cat ON c.category_id = cat.id 
+                 WHERE cat.playlist_id = ? AND c.type = ?
+                 ORDER BY c.added`,
+                [playlistId, type]
+            );
+            
+            // Handle nested array result from Tauri SQL plugin
+            const flattenedResult = result.flat();
+            return flattenedResult.length > 0;
+        } catch (error) {
+            console.error('Error checking content:', error);
+            return false;
+        }
+    }
+
+    async getXtreamContent(
+        playlistId: string,
+        type: 'live' | 'movie' | 'series'
+    ): Promise<XtreamContent[]> {
+        // Check if we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('Database operations are only available in Tauri desktop environment');
+            return [];
+        }
+
+        try {
+            const db = await this.getConnection();
+            const result = await db.select(
+                `SELECT 
+                    c.id, c.category_id, c.title, c.rating, 
+                    c.added, c.poster_url, c.xtream_id, c.type
+                FROM content c 
+                INNER JOIN categories cat ON c.category_id = cat.id 
+                WHERE cat.playlist_id = ? AND c.type = ?
+                ORDER BY c.added DESC`,
+                [playlistId, type]
+            );
+            
+            // Flatten the nested array result
+            return result.flat() as unknown as XtreamContent[];
+        } catch (error) {
+            console.error('Error getting content:', error);
+            return [];
+        }
     }
 }

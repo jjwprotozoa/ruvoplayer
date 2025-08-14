@@ -161,8 +161,8 @@ export class MultiEpgContainerComponent
             return;
         }
 
-        const today = format(new Date(), 'yyyyMMdd');
-        const startTime = format(new Date(), 'yyyyMMddHHmmss +0000');
+        const today = new Date();
+        const startTime = format(today, 'yyyyMMddHHmmss +0000');
         const endTime = format(addDays(today, 2), 'yyyyMMddHHmmss +0000');
 
         try {

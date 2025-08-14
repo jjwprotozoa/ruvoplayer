@@ -17,8 +17,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { isTauri } from '@tauri-apps/api/core';
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { firstValueFrom } from 'rxjs';
 import { Playlist } from '../../../../../shared/playlist.interface';
 import { DatabaseService } from '../../../services/database.service';
@@ -174,6 +172,15 @@ export class PlaylistInfoComponent {
 
         if (this.isTauri) {
             try {
+                // Dynamically import Tauri plugins only when needed
+                const [saveModule, writeTextFileModule] = await Promise.all([
+                    import('@tauri-apps/plugin-dialog'),
+                    import('@tauri-apps/plugin-fs')
+                ]);
+
+                const { save } = saveModule;
+                const { writeTextFile } = writeTextFileModule;
+
                 const savePath = await save({
                     filters: [
                         {

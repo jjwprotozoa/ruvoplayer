@@ -16,9 +16,24 @@ export const loadPlaylistsSuccess = createAction(
     props<{ playlists: PlaylistMeta[] }>()
 );
 
+export const loadPlaylistsFailure = createAction(
+    `${PLAYLISTS_STORE_KEY} Failed to load playlists from db`,
+    props<{ error: any }>()
+);
+
 export const addPlaylist = createAction(
     `${PLAYLISTS_STORE_KEY} Add new playlist`,
     props<{ playlist: Playlist }>()
+);
+
+export const addPlaylistSuccess = createAction(
+    `${PLAYLISTS_STORE_KEY} Successfully added playlist`,
+    props<{ playlist: Playlist }>()
+);
+
+export const addPlaylistFailure = createAction(
+    `${PLAYLISTS_STORE_KEY} Failed to add playlist`,
+    props<{ error: any }>()
 );
 
 export const addManyPlaylists = createAction(
@@ -31,6 +46,16 @@ export const removePlaylist = createAction(
     props<{ playlistId: string }>()
 );
 
+export const removePlaylistSuccess = createAction(
+    `${PLAYLISTS_STORE_KEY} Successfully removed playlist`,
+    props<{ playlistId: string }>()
+);
+
+export const removePlaylistFailure = createAction(
+    `${PLAYLISTS_STORE_KEY} Failed to remove playlist`,
+    props<{ error: any }>()
+);
+
 export const updatePlaylistMeta = createAction(
     `${PLAYLISTS_STORE_KEY} update playlist meta`,
     props<{ playlist: PlaylistMeta }>()
@@ -39,6 +64,16 @@ export const updatePlaylistMeta = createAction(
 export const updatePlaylist = createAction(
     `${PLAYLISTS_STORE_KEY} update playlist`,
     props<{ playlist: Playlist; playlistId: string }>()
+);
+
+export const updatePlaylistSuccess = createAction(
+    `${PLAYLISTS_STORE_KEY} Successfully updated playlist`,
+    props<{ playlist: Playlist }>()
+);
+
+export const updatePlaylistFailure = createAction(
+    `${PLAYLISTS_STORE_KEY} Failed to update playlist`,
+    props<{ error: any }>()
 );
 
 export const updateManyPlaylists = createAction(
