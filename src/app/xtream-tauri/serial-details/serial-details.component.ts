@@ -47,7 +47,7 @@ export class SerialDetailsComponent {
     private addToRecentlyViewed(xtreamId: number) {
         this.xtreamStore.addRecentItem({
             contentId: xtreamId,
-            playlist: this.xtreamStore.currentPlaylist,
+            playlist: { id: this.xtreamStore.currentPlaylist().id },
         });
     }
 

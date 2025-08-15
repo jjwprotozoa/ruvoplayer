@@ -1,4 +1,4 @@
-import { inject, Signal } from '@angular/core';
+import { inject } from '@angular/core';
 import {
     patchState,
     signalStoreFeature,
@@ -6,18 +6,20 @@ import {
     withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import { isTauri } from '@tauri-apps/api/core';
 import { pipe, switchMap, tap } from 'rxjs';
 import { DatabaseService } from '../services/database.service';
 
 export interface RecentlyViewedItem {
     id: number;
     title: string;
-    type: 'live' | 'movie' | 'series';
+    type: string;
     poster_url: string;
     content_id: number;
     playlist_id: string;
     viewed_at: string;
     xtream_id: number;
+    category_id: number;
 }
 
 export const withRecentItems = function () {
@@ -30,29 +32,45 @@ export const withRecentItems = function () {
                 pipe(
                     switchMap(async (playlist) => {
                         if (!playlist) return [];
-                        console.log(
-                            'Loading recent items for playlist',
-                            playlist.id
-                        );
-                        const db = await dbService.getConnection();
-                        return db.select<RecentlyViewedItem[]>(
-                            `SELECT 
-                                rv.id,
-                                c.title,
-                                c.type,
-                                c.poster_url,
-                                c.id as content_id,
-                                rv.playlist_id,
-                                rv.viewed_at,
-                                c.xtream_id,
-                                c.category_id
-                            FROM recently_viewed rv
-                            JOIN content c ON rv.content_id = c.id
-                            WHERE rv.playlist_id = ?
-                            ORDER BY rv.viewed_at DESC
-                            LIMIT 50`,
-                            [playlist.id]
-                        );
+                        
+                        // Check if we're in a Tauri environment
+                        if (!isTauri()) {
+                            console.warn('Database operations are only available in Tauri desktop environment');
+                            return [];
+                        }
+
+                        try {
+                            console.log(
+                                'Loading recent items for playlist',
+                                playlist.id
+                            );
+                            const db = await dbService.getConnection();
+                            const result = await db.select<RecentlyViewedItem[]>(
+                                `SELECT 
+                                    rv.id,
+                                    c.title,
+                                    c.type,
+                                    c.poster_url,
+                                    c.id as content_id,
+                                    rv.playlist_id,
+                                    rv.viewed_at,
+                                    c.xtream_id,
+                                    c.category_id
+                                FROM recently_viewed rv
+                                JOIN content c ON rv.content_id = c.id
+                                WHERE rv.playlist_id = ?
+                                ORDER BY rv.viewed_at DESC
+                                LIMIT 50`,
+                                [playlist.id]
+                            );
+                            
+                            // Handle nested array result from Tauri SQL plugin
+                            const flattenedResult = result.flat();
+                            return flattenedResult as unknown as RecentlyViewedItem[];
+                        } catch (error) {
+                            console.error('Failed to load recent items:', error);
+                            return [];
+                        }
                     }),
                     tap((items: RecentlyViewedItem[]) =>
                         patchState(store, { recentItems: items })
@@ -63,54 +81,77 @@ export const withRecentItems = function () {
         withMethods((store, dbService = inject(DatabaseService)) => ({
             addRecentItem: rxMethod<{
                 contentId: number;
-                playlist: Signal<{ id: string }>;
+                playlist: { id: string };
             }>(
                 pipe(
                     switchMap(async ({ contentId, playlist }) => {
-                        if (!playlist().id) {
+                        if (!playlist.id) {
                             console.error('No active playlist found');
                             return;
                         }
 
-                        console.log(
-                            'Adding to recently viewed:',
-                            playlist().id
-                        );
+                        // Check if we're in a Tauri environment
+                        if (!isTauri()) {
+                            console.warn('Database operations are only available in Tauri desktop environment');
+                            return;
+                        }
 
-                        const db = await dbService.getConnection();
-
-                        const content: any = await db.select(
-                            'SELECT content.id FROM content ' +
-                                'INNER JOIN categories ON content.category_id = categories.id ' +
-                                'WHERE content.xtream_id = ? AND categories.playlist_id = ?',
-                            [contentId, playlist().id]
-                        );
-
-                        if (content && content.length > 0) {
-                            // Check if item already exists in recently_viewed
-                            const existing: any = await db.select(
-                                'SELECT recently_viewed.id FROM recently_viewed ' +
-                                    'INNER JOIN content ON recently_viewed.content_id = content.id ' +
-                                    'INNER JOIN categories ON content.category_id = categories.id ' +
-                                    'WHERE content.id = ? AND categories.playlist_id = ?',
-                                [content[0].id, playlist().id]
+                        try {
+                            console.log(
+                                'Adding to recently viewed:',
+                                playlist.id
                             );
 
-                            if (existing && existing.length > 0) {
-                                // Update existing record's viewed_at timestamp
-                                await db.execute(
-                                    'UPDATE recently_viewed SET viewed_at = CURRENT_TIMESTAMP WHERE id = ?',
-                                    [existing[0].id]
-                                );
+                            const db = await dbService.getConnection();
+
+                            const content: any = await db.select(
+                                'SELECT content.id FROM content ' +
+                                    'INNER JOIN categories ON content.category_id = categories.id ' +
+                                    'WHERE content.xtream_id = ? AND categories.playlist_id = ?',
+                                [contentId, playlist.id]
+                            );
+
+                            if (!content || content.length === 0) {
+                                console.error('Content not found in database');
+                                return;
+                            }
+
+                            // Handle nested array result from Tauri SQL plugin
+                            const flattenedContent = content.flat();
+                            if (flattenedContent.length === 0) {
+                                console.error('Content not found in database');
+                                return;
+                            }
+
+                            const contentIdFromDb = flattenedContent[0].id;
+
+                            // Check if item already exists
+                            const existing = await db.select(
+                                'SELECT id FROM recently_viewed WHERE content_id = ? AND playlist_id = ?',
+                                [contentIdFromDb, playlist.id]
+                            );
+
+                            if (existing.length > 0) {
+                                // Update existing entry
+                                const flattenedExisting = existing.flat();
+                                if (flattenedExisting.length > 0) {
+                                    await db.execute(
+                                        'UPDATE recently_viewed SET viewed_at = CURRENT_TIMESTAMP WHERE id = ?',
+                                        [flattenedExisting[0].id]
+                                    );
+                                }
                             } else {
-                                // Insert new record
+                                // Insert new entry
                                 await db.execute(
-                                    `INSERT INTO recently_viewed (content_id, playlist_id) 
-                            VALUES (?, ?)`,
-                                    [content[0].id, playlist().id]
+                                    'INSERT INTO recently_viewed (content_id, playlist_id) VALUES (?, ?)',
+                                    [contentIdFromDb, playlist.id]
                                 );
                             }
-                            return store.loadRecentItems({ id: playlist().id });
+
+                            // Reload recent items
+                            this.loadRecentItems(playlist);
+                        } catch (error) {
+                            console.error('Failed to add recent item:', error);
                         }
                     })
                 )
@@ -118,28 +159,48 @@ export const withRecentItems = function () {
             clearRecentItems: rxMethod<{ id: string }>(
                 pipe(
                     switchMap(async (playlist) => {
-                        console.log(
-                            'Clearing recent items for playlist',
-                            playlist.id
-                        );
-                        const db = await dbService.getConnection();
-                        await db.execute(
-                            `DELETE FROM recently_viewed WHERE playlist_id = ?`,
-                            [playlist.id]
-                        );
-                        return store.loadRecentItems({ id: playlist.id });
+                        // Check if we're in a Tauri environment
+                        if (!isTauri()) {
+                            console.warn('Database operations are only available in Tauri desktop environment');
+                            return;
+                        }
+
+                        try {
+                            console.log(
+                                'Clearing recent items for playlist',
+                                playlist.id
+                            );
+                            const db = await dbService.getConnection();
+                            await db.execute(
+                                `DELETE FROM recently_viewed WHERE playlist_id = ?`,
+                                [playlist.id]
+                            );
+                            return store.loadRecentItems({ id: playlist.id });
+                        } catch (error) {
+                            console.error('Failed to clear recent items:', error);
+                        }
                     })
                 )
             ),
             removeRecentItem: rxMethod<{ itemId: number; playlistId: string }>(
                 pipe(
                     switchMap(async ({ itemId, playlistId }) => {
-                        const db = await dbService.getConnection();
-                        await db.execute(
-                            `DELETE FROM recently_viewed WHERE id = ? AND playlist_id = ?`,
-                            [itemId, playlistId]
-                        );
-                        return store.loadRecentItems({ id: playlistId });
+                        // Check if we're in a Tauri environment
+                        if (!isTauri()) {
+                            console.warn('Database operations are only available in Tauri desktop environment');
+                            return;
+                        }
+
+                        try {
+                            const db = await dbService.getConnection();
+                            await db.execute(
+                                `DELETE FROM recently_viewed WHERE id = ? AND playlist_id = ?`,
+                                [itemId, playlistId]
+                            );
+                            return store.loadRecentItems({ id: playlistId });
+                        } catch (error) {
+                            console.error('Failed to remove recent item:', error);
+                        }
                     })
                 )
             ),

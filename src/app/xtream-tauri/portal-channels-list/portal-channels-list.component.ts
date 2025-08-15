@@ -183,8 +183,8 @@ export class PortalChannelsListComponent implements AfterViewInit {
                 item.xtream_id,
                 this.xtreamStore.currentPlaylist().id
             )
-            .then((result: boolean) => {
-                if (result) {
+            .then((result) => {
+                if (result === true) {
                     this.favorites.set(item.xtream_id, true);
                 } else {
                     this.favorites.delete(item.xtream_id);

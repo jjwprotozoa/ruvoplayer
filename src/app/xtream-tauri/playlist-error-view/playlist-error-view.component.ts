@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { isTauri } from '@tauri-apps/api/core';
 import { PlaylistInfoComponent } from '../../home/recent-playlists/playlist-info/playlist-info.component';
 import { DatabaseService } from '../../services/database.service';
 import { DialogService } from '../../services/dialog.service';
@@ -52,10 +53,20 @@ export class PlaylistErrorViewComponent {
     }
 
     async removePlaylist(playlistId: string): Promise<void> {
-        const deleted = await this.databaseService.deletePlaylist(playlistId);
-        if (deleted) {
-            this.store.dispatch(PlaylistActions.removePlaylist({ playlistId }));
-            this.router.navigate(['/']);
+        // Ensure we're in a Tauri environment
+        if (!isTauri()) {
+            console.warn('This component is only available in Tauri desktop environment');
+            return;
+        }
+
+        try {
+            const deleted = await this.databaseService.deletePlaylist(playlistId);
+            if (deleted) {
+                this.store.dispatch(PlaylistActions.removePlaylist({ playlistId }));
+                this.router.navigate(['/']);
+            }
+        } catch (error) {
+            console.error('Failed to delete playlist:', error);
         }
     }
 }

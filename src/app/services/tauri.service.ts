@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
-import { invoke } from '@tauri-apps/api/core';
-import { readTextFile } from '@tauri-apps/plugin-fs';
-import { fetch } from '@tauri-apps/plugin-http';
+import { invoke, isTauri } from '@tauri-apps/api/core';
 import { parse } from 'iptv-playlist-parser';
 import {
     AUTO_UPDATE_PLAYLISTS,
@@ -11,9 +9,7 @@ import {
     ERROR,
     PLAYLIST_PARSE_BY_URL,
     PLAYLIST_PARSE_RESPONSE,
-    PLAYLIST_UPDATE,
-    PLAYLIST_UPDATE_RESPONSE,
-    XTREAM_RESPONSE,
+    XTREAM_RESPONSE
 } from '../../../shared/ipc-commands';
 import { Playlist } from '../../../shared/playlist.interface';
 import { createPlaylistObject } from '../../../shared/playlist.utils';
@@ -35,32 +31,60 @@ export class TauriService extends DataService {
 
     async sendIpcEvent(type: string, payload?: unknown) {
         if (type === PLAYLIST_PARSE_BY_URL) {
-            this.fetchFromUrl(payload);
-        } else if (type === PLAYLIST_UPDATE) {
-            const data = payload as {
-                id: string;
-                filePath: string;
-                title: string;
-            };
-            const playlist = await readTextFile(data.filePath);
-            const parsedPlaylist = parse(playlist);
-            const playlistObject = createPlaylistObject(
-                data.title,
-                parsedPlaylist,
-                data.filePath,
-                'FILE'
-            );
-
-            window.postMessage({
-                type: PLAYLIST_UPDATE_RESPONSE,
-                payload: {
-                    message: 'Success! The playlist was successfully updated',
-                    playlist: {
-                        ...playlistObject,
-                        _id: data.id,
+            const data = payload as { url: string };
+            try {
+                // Dynamically import the Tauri HTTP plugin only when needed
+                const { fetch } = await import('@tauri-apps/plugin-http');
+                const response = await fetch(data.url);
+                const playlist = await response.text();
+                const parsedPlaylist = parse(playlist);
+                const playlistObject = createPlaylistObject(
+                    data.url,
+                    parsedPlaylist,
+                    data.url,
+                    'URL'
+                );
+                window.postMessage({
+                    type: PLAYLIST_PARSE_RESPONSE,
+                    payload: {
+                        message: 'Success! The playlist was successfully parsed',
+                        playlist: playlistObject,
                     },
-                },
-            });
+                });
+            } catch (error) {
+                console.error('Failed to parse playlist from URL:', error);
+                window.postMessage({
+                    type: ERROR,
+                    message: `Error parsing playlist from URL: ${error}`,
+                });
+            }
+        } else if (type === 'PLAYLIST_PARSE_BY_FILE') {
+            const data = payload as { filePath: string };
+            try {
+                // Dynamically import the Tauri file system plugin only when needed
+                const { readTextFile } = await import('@tauri-apps/plugin-fs');
+                const playlist = await readTextFile(data.filePath);
+                const parsedPlaylist = parse(playlist);
+                const playlistObject = createPlaylistObject(
+                    data.filePath,
+                    parsedPlaylist,
+                    data.filePath,
+                    'FILE'
+                );
+                window.postMessage({
+                    type: PLAYLIST_PARSE_RESPONSE,
+                    payload: {
+                        message: 'Success! The playlist was successfully parsed',
+                        playlist: playlistObject,
+                    },
+                });
+            } catch (error) {
+                console.error('Failed to parse playlist from file:', error);
+                window.postMessage({
+                    type: ERROR,
+                    message: `Error parsing playlist from file: ${error}`,
+                });
+            }
         } else if (type === 'XTREAM_REQUEST') {
             return await this.forwardXtreamRequest(
                 payload as { url: string; params: Record<string, string> }
@@ -74,6 +98,12 @@ export class TauriService extends DataService {
                 }
             );
         } else if (type === 'OPEN_MPV_PLAYER') {
+            // Check if we're in a Tauri environment
+            if (!isTauri()) {
+                console.warn('MPV player operations are only available in Tauri desktop environment');
+                return;
+            }
+
             const data = payload as any;
             return invoke('open_in_mpv', {
                 url: data.url,
@@ -91,6 +121,12 @@ export class TauriService extends DataService {
                 throw error;
             });
         } else if (type === 'OPEN_VLC_PLAYER') {
+            // Check if we're in a Tauri environment
+            if (!isTauri()) {
+                console.warn('VLC player operations are only available in Tauri desktop environment');
+                return;
+            }
+
             const data = payload as any;
             return invoke('open_in_vlc', {
                 url: data.url,
@@ -116,15 +152,21 @@ export class TauriService extends DataService {
 
             for await (const item of data) {
                 if (item.filePath) {
-                    const playlist = await readTextFile(item.filePath);
-                    const parsedPlaylist = parse(playlist);
-                    const playlistObject = createPlaylistObject(
-                        item.title,
-                        parsedPlaylist,
-                        item.filePath,
-                        'FILE'
-                    );
-                    playlists.push({ ...playlistObject, _id: item._id });
+                    try {
+                        // Dynamically import the Tauri file system plugin only when needed
+                        const { readTextFile } = await import('@tauri-apps/plugin-fs');
+                        const playlist = await readTextFile(item.filePath);
+                        const parsedPlaylist = parse(playlist);
+                        const playlistObject = createPlaylistObject(
+                            item.title,
+                            parsedPlaylist,
+                            item.filePath,
+                            'FILE'
+                        );
+                        playlists.push({ ...playlistObject, _id: item._id });
+                    } catch (error) {
+                        console.error('Failed to read playlist file:', error);
+                    }
                 }
             }
             window.postMessage({

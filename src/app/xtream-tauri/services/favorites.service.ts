@@ -34,21 +34,26 @@ export class FavoritesService {
     }
 
     async isFavorite(contentId: number, playlistId: string): Promise<boolean> {
-        const db = await this.dbService.getConnection();
-        const result = await db.select<any[]>(
-            `SELECT COUNT(*) as count 
-             FROM favorites f
-             JOIN content c ON f.content_id = c.id
-             WHERE c.xtream_id = ? AND f.playlist_id = ?`,
-            [contentId, playlistId]
-        );
-        return result[0].count > 0;
+        try {
+            const db = await this.dbService.getConnection();
+            const result = await db.select(
+                'SELECT COUNT(*) as count FROM favorites f JOIN content c ON f.content_id = c.id JOIN categories cat ON c.category_id = cat.id WHERE c.xtream_id = ? AND cat.playlist_id = ?',
+                [contentId, playlistId]
+            );
+            
+            // Handle nested array result from Tauri SQL plugin
+            const flattenedResult = result.flat();
+            return flattenedResult[0]?.count > 0;
+        } catch (error) {
+            console.error('Error checking favorite status:', error);
+            return false;
+        }
     }
 
     getFavorites(playlistId: string): Observable<FavoriteItem[]> {
         return from(this.dbService.getConnection()).pipe(
             mergeMap(async (db) => {
-                return await db.select<FavoriteItem[]>(
+                const result = await db.select(
                     `SELECT 
                         c.*,
                         f.playlist_id,
@@ -59,6 +64,9 @@ export class FavoritesService {
                      ORDER BY f.added_at DESC`,
                     [playlistId]
                 );
+                
+                // Handle nested array result from Tauri SQL plugin
+                return result.flat();
             }),
             map((results) => results)
         );
