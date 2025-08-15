@@ -30,6 +30,9 @@ export class PwaService extends DataService {
     private readonly swUpdate = inject(SwUpdate);
     private readonly translateService = inject(TranslateService);
 
+    /** In-memory, dynamically optimized API order based on health */
+    private effectiveApis: string[] | null = null;
+
     /** Proxy URL to avoid CORS issues */
     corsProxyUrl = AppConfig.BACKEND_URL;
 
@@ -47,9 +50,59 @@ export class PwaService extends DataService {
         return AppConfig.FALLBACK_APIS || [AppConfig.BACKEND_URL];
     }
 
+    /** Prefer dynamically optimized order if available */
+    private getApiOrder(): string[] {
+        return this.effectiveApis && this.effectiveApis.length > 0
+            ? this.effectiveApis
+            : this.fallbackApis;
+    }
+
+    /** Probe each API /health and prioritize a healthy backup if primary is down */
+    private async optimizeApiOrderByHealth(): Promise<void> {
+        try {
+            const configured = this.fallbackApis;
+            if (!configured || configured.length === 0) return;
+
+            const checks = await Promise.all(
+                configured.map((base) => this.checkApiHealth(`${base}`))
+            );
+
+            const primaryHealthy = checks[0] === true;
+            if (primaryHealthy) {
+                this.effectiveApis = configured.slice();
+                return;
+            }
+
+            const firstHealthyIdx = checks.findIndex((ok) => ok === true);
+            if (firstHealthyIdx > 0) {
+                const healthyPrimary = configured[firstHealthyIdx];
+                const rest = configured.filter((_, i) => i !== firstHealthyIdx);
+                this.effectiveApis = [healthyPrimary, ...rest];
+                console.warn('Primary API appears down. Using backup as primary:', healthyPrimary);
+            } else {
+                this.effectiveApis = configured.slice();
+            }
+        } catch {
+            this.effectiveApis = this.fallbackApis.slice();
+        }
+    }
+
+    /** Health check helper */
+    private async checkApiHealth(baseUrl: string): Promise<boolean> {
+        try {
+            const url = `${baseUrl.replace(/\/$/, '')}/health`;
+            const resp: any = await firstValueFrom(
+                this.http.get(url, { observe: 'response' as any })
+            );
+            return resp && resp.status >= 200 && resp.status < 300;
+        } catch {
+            return false;
+        }
+    }
+
     /** Smart API call with fallback */
     private async makeApiCallWithFallback(endpoint: string, params: any, headers?: any) {
-        const apis = this.fallbackApis;
+        const apis = this.getApiOrder();
         
         for (let i = 0; i < apis.length; i++) {
             const apiUrl = apis[i];
@@ -82,6 +135,8 @@ export class PwaService extends DataService {
     constructor() {
         super();
         console.log('PWA service initialized...');
+        // Run health optimization without blocking app startup
+        this.optimizeApiOrderByHealth();
     }
 
     /** Uses service worker mechanism to check for available application updates */
