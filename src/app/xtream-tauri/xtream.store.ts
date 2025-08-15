@@ -802,7 +802,9 @@ export const XtreamStore = signalStore(
                     const { serverUrl, username, password } =
                         store.currentPlaylist();
                     const streamFormat = settingsStore.streamFormat() ?? 'ts';
-                    const streamUrl = `${serverUrl}/live/${username}/${password}/${item.xtream_id}.${streamFormat}`;
+                    // Proxy through backend to avoid CORS/headers issues
+                    const rawUrl = `${serverUrl}/live/${username}/${password}/${item.xtream_id}.${streamFormat}`;
+                    const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
 
                     // Set the selected item and load EPG data in the store
                     setSelectedItem(item);
@@ -814,7 +816,8 @@ export const XtreamStore = signalStore(
                 constructVodStreamUrl(vodItem: XtreamVodDetails) {
                     const { serverUrl, username, password } =
                         store.currentPlaylist();
-                    const streamUrl = `${serverUrl}/movie/${username}/${password}/${vodItem.movie_data.stream_id}.${vodItem.movie_data.container_extension}`;
+                    const rawUrl = `${serverUrl}/movie/${username}/${password}/${vodItem.movie_data.stream_id}.${vodItem.movie_data.container_extension}`;
+                    const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
 
                     patchState(store, { streamUrl });
                     return streamUrl;
@@ -822,7 +825,8 @@ export const XtreamStore = signalStore(
                 constructEpisodeStreamUrl(episode: XtreamSerieEpisode) {
                     const { serverUrl, username, password } =
                         store.currentPlaylist();
-                    const streamUrl = `${serverUrl}/series/${username}/${password}/${episode.id}.${episode.container_extension}`;
+                    const rawUrl = `${serverUrl}/series/${username}/${password}/${episode.id}.${episode.container_extension}`;
+                    const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
                     patchState(store, { streamUrl });
                     return streamUrl;
                 },
