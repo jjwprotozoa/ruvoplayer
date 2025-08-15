@@ -191,7 +191,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
                                 CHANNEL_SET_USER_AGENT,
                                 playlist.userAgent
                                     ? {
-                                          referer: 'localhost',
+                                          referer: window.location.origin,
                                           userAgent: playlist.userAgent,
                                       }
                                     : {}
