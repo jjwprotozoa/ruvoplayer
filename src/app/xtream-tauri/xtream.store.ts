@@ -835,12 +835,28 @@ export const XtreamStore = signalStore(
                     title: string,
                     thumbnail: string = null
                 ) {
+                    // If the container is clearly not browser-friendly, prefer external player
+                    const lower = streamUrl.toLowerCase();
+                    const isBrowserSafe = lower.endsWith('.m3u8') || lower.endsWith('.ts') || lower.includes('application/vnd.apple.mpegurl');
+                    const preferExternal = lower.endsWith('.mkv') || lower.endsWith('.avi');
+
+                    if (preferExternal) {
+                        // Force external player for mkv/avi like IPTVnator
+                        playerService.openPlayer(
+                            streamUrl,
+                            title,
+                            thumbnail,
+                            false,
+                            store.selectedContentType() === 'live'
+                        );
+                        return;
+                    }
+
                     playerService.openPlayer(
                         streamUrl,
                         title,
                         thumbnail,
-                        localStorage.getItem('hideExternalInfoDialog') ===
-                            'true',
+                        localStorage.getItem('hideExternalInfoDialog') === 'true',
                         store.selectedContentType() === 'live'
                     );
                 },
