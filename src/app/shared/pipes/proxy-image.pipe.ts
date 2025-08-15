@@ -1,5 +1,4 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { AppConfig } from '../../../environments/environment';
 
 @Pipe({
     name: 'proxyImage',
@@ -11,8 +10,8 @@ export class ProxyImagePipe implements PipeTransform {
         try {
             // Only proxy http(s) external URLs
             if (/^https?:\/\//i.test(url)) {
-                const base = AppConfig.BACKEND_URL?.replace(/\/$/, '');
-                return `${base.replace(/\/$/, '')}/image?url=${encodeURIComponent(url)}`;
+                // Use this app's serverless function: relative path so it works on any domain
+                return `/api/image?url=${encodeURIComponent(url)}`;
             }
             return url;
         } catch {
