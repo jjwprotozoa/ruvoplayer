@@ -334,7 +334,8 @@ export class XtreamMainContainerComponent implements OnInit {
 
     playLiveStream(item: XtreamLiveStream) {
         const { serverUrl, username, password } = this.currentPlaylist();
-        const streamUrl = `${serverUrl}/${item.stream_type}/${username}/${password}/${item.stream_id}.m3u8`;
+        const rawUrl = `${serverUrl}/${item.stream_type}/${username}/${password}/${item.stream_id}.m3u8`;
+        const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
         this.activeLiveStream = item;
         this.openPlayer(streamUrl, item.name);
     }
@@ -372,7 +373,8 @@ export class XtreamMainContainerComponent implements OnInit {
     playVod(vodItem: XtreamVodDetails) {
         const { serverUrl, username, password } = this.currentPlaylist();
         this.items = [];
-        const streamUrl = `${serverUrl}/movie/${username}/${password}/${vodItem.movie_data.stream_id}.${vodItem.movie_data.container_extension}`;
+        const rawUrl = `${serverUrl}/movie/${username}/${password}/${vodItem.movie_data.stream_id}.${vodItem.movie_data.container_extension}`;
+        const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
 
         // Start pre-buffering the video immediately when play button is clicked
         this.preBufferService.startPreBuffering(streamUrl).subscribe({
@@ -393,7 +395,8 @@ export class XtreamMainContainerComponent implements OnInit {
     playEpisode(episode: XtreamSerieEpisode) {
         const { serverUrl, username, password } = this.currentPlaylist();
         const player = this.settingsStore.player();
-        const streamUrl = `${serverUrl}/series/${username}/${password}/${episode.id}.${episode.container_extension}`;
+        const rawUrl = `${serverUrl}/series/${username}/${password}/${episode.id}.${episode.container_extension}`;
+        const streamUrl = `/api/stream-proxy?streamUrl=${encodeURIComponent(rawUrl)}`;
         if (player === VideoPlayer.MPV) {
             this.dataService.sendIpcEvent(OPEN_MPV_PLAYER, { url: streamUrl });
         } else if (player === VideoPlayer.VLC) {
