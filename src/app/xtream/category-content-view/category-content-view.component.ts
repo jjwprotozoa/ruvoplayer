@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { XtreamItem } from '../../../../shared/xtream-item.interface';
 import { FilterPipe } from '../../shared/pipes/filter.pipe';
 import { SortPipe } from '../../shared/pipes/sort.pipe';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 import { PlaylistErrorViewComponent } from '../playlist-error-view/playlist-error-view.component';
 import { PortalStore } from '../portal.store';
 
@@ -21,6 +22,7 @@ import { PortalStore } from '../portal.store';
         MatIconModule,
         MatTooltipModule,
         NgOptimizedImage,
+        ProxyImagePipe,
         PlaylistErrorViewComponent,
         TranslateModule,
     ]

@@ -22,7 +22,7 @@
                 @if (episode.info?.movie_image) {
                     <mat-card-content
                         ><img
-                            [src]="episode.info.movie_image"
+                            [src]="episode.info.movie_image | proxyImage"
                             (error)="
                                 $event.target.src =
                                     './assets/images/default-poster.png'

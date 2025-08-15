@@ -13,7 +13,7 @@
         <div class="image">
             @if (item.info?.cover) {
                 <img
-                    [src]="item.info.cover"
+                    [src]="item.info.cover | proxyImage"
                     (error)="
                         $event.target.src = './assets/images/default-poster.png'
                     "

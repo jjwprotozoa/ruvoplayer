@@ -12,7 +12,7 @@
                 @if (i.poster_url) {
                     <img
                         class="stream-icon"
-                        [ngSrc]="i.poster_url"
+                        [ngSrc]="i.poster_url | proxyImage"
                         fill
                         priority
                         (error)="$event.target.src = './assets/images/default-poster.png'"

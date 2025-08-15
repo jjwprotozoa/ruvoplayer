@@ -12,6 +12,7 @@ import {
 import { PlaylistsService } from '../../services/playlists.service';
 import { selectCurrentPlaylist } from '../../state/selectors';
 import { SeasonContainerComponent } from '../season-container/season-container.component';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 
 @Component({
     selector: 'app-serial-details',
@@ -22,6 +23,7 @@ import { SeasonContainerComponent } from '../season-container/season-container.c
         MatIconModule,
         NgIf,
         SeasonContainerComponent,
+        ProxyImagePipe,
         TranslateModule,
     ],
 })

@@ -20,7 +20,7 @@
             (click)="selectEpisode(episode)"
         >
             <mat-card-content *ngIf="episode.info.movie_image"
-                ><img [src]="episode.info.movie_image" class="episode-cover"
+                ><img [src]="episode.info.movie_image | proxyImage" class="episode-cover"
             /></mat-card-content>
             <div class="episode-title">
                 {{ episode.episode_num }}. {{ episode.title }}

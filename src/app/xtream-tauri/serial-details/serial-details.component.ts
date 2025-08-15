@@ -5,13 +5,14 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { XtreamSerieEpisode } from '../../../../shared/xtream-serie-details.interface';
 import { SeasonContainerComponent } from '../season-container/season-container.component';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 import { XtreamStore } from '../xtream.store';
 
 @Component({
     selector: 'app-serial-details',
     templateUrl: './serial-details.component.html',
     styleUrls: ['../detail-view.scss'],
-    imports: [MatButton, MatIcon, SeasonContainerComponent, TranslatePipe],
+    imports: [MatButton, MatIcon, SeasonContainerComponent, TranslatePipe, ProxyImagePipe],
 })
 export class SerialDetailsComponent {
     private readonly route = inject(ActivatedRoute);

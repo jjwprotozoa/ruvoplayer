@@ -11,9 +11,7 @@
                     @if (item.stream_icon || item.cover || item.logo) {
                         <img
                             class="stream-icon"
-                            [ngSrc]="
-                                item.stream_icon || item.cover || item.logo
-                            "
+                            [ngSrc]="(item.stream_icon || item.cover || item.logo) | proxyImage"
                             fill
                             priority
                             (error)="

@@ -9,7 +9,7 @@
     "
 >
     <div class="image">
-        <img *ngIf="item.info.cover" [src]="item.info.cover" />
+        <img *ngIf="item.info.cover" [src]="item.info.cover | proxyImage" />
     </div>
     <div class="details">
         <h2>{{ item.info.name }}</h2>

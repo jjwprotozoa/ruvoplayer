@@ -9,6 +9,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { TvNavigationDirective } from '../../shared/directives/tv-navigation.directive';
 import { PlaylistErrorViewComponent } from '../playlist-error-view/playlist-error-view.component';
 import { XtreamStore } from '../xtream.store';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 
 @Component({
     selector: 'app-category-content-view',
@@ -20,6 +21,7 @@ import { XtreamStore } from '../xtream.store';
         MatPaginatorModule,
         MatTooltip,
         NgOptimizedImage,
+        ProxyImagePipe,
         PlaylistErrorViewComponent,
         TranslatePipe,
         TvNavigationDirective,

@@ -31,7 +31,7 @@
             <img
                 matListItemAvatar
                 class="stream-icon"
-                [src]="item.stream_icon ?? item.poster_url"
+                [src]="(item.stream_icon ?? item.poster_url) | proxyImage"
                 (error)="
                     $event.target.src = './assets/images/default-poster.png'
                 "

@@ -15,6 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { XtreamVodDetails } from '../../../../shared/xtream-vod-details.interface';
 import { PlaylistsService } from '../../services/playlists.service';
 import { SafePipe } from './safe.pipe';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 
 @Component({
     selector: 'app-vod-details',
@@ -26,6 +27,7 @@ import { SafePipe } from './safe.pipe';
         NgIf,
         MatIconModule,
         SafePipe,
+        ProxyImagePipe,
         TranslateModule,
         MatProgressSpinnerModule,
     ]
