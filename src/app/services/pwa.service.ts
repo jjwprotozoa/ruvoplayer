@@ -196,7 +196,7 @@ export class PwaService extends DataService {
                             observer.error(new Error('No valid playlist items found'));
                         }
                     } catch (error) {
-                        observer.error(new Error('Failed to parse playlist'));
+                        observer.error(new Error(`Failed to parse playlist: ${error.message || error}`));
                     }
                 },
                 error: (error) => {
