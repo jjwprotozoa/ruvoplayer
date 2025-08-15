@@ -4,18 +4,18 @@ export const AppConfig = {
     production: true,
     environment: 'WEB',
     version: packageJson.version,
-    BACKEND_URL: 'https://ruvoplayer-api-backup.vercel.app',
+    BACKEND_URL: 'https://ruvoplayer-api.vercel.app',
     // API endpoints for RuvoPlayer
     API_ENDPOINTS: {
-        parse: 'https://ruvoplayer-api-backup.vercel.app/parse',
-        xtream: 'https://ruvoplayer-api-backup.vercel.app/xtream',
-        stalker: 'https://ruvoplayer-api-backup.vercel.app/stalker',
-        health: 'https://ruvoplayer-api-backup.vercel.app/health'
+        parse: 'https://ruvoplayer-api.vercel.app/parse',
+        xtream: 'https://ruvoplayer-api.vercel.app/xtream',
+        stalker: 'https://ruvoplayer-api.vercel.app/stalker',
+        health: 'https://ruvoplayer-api.vercel.app/health'
     },
     // Fallback APIs for redundancy
     FALLBACK_APIS: [
-        'https://ruvoplayer-api-backup.vercel.app', // Now primary (healthy)
-        'https://ruvoplayer-api.vercel.app'         // Fallback (currently 404 on /health)
+        'https://ruvoplayer-api.vercel.app',        // Primary API
+        'https://ruvoplayer-api-backup.vercel.app'  // Backup API
     ],
     // Timeout configurations for better error handling
     TIMEOUTS: {
