@@ -4,12 +4,13 @@ import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { XtreamSerieEpisode } from '../../../../shared/xtream-serie-details.interface';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 
 @Component({
     selector: 'app-season-container',
     templateUrl: './season-container.component.html',
     styleUrls: ['./season-container.component.scss'],
-    imports: [KeyValuePipe, MatCardModule, MatIcon, MatButton],
+    imports: [KeyValuePipe, MatCardModule, MatIcon, MatButton, ProxyImagePipe],
 })
 export class SeasonContainerComponent {
     readonly seasons = input.required<Record<string, XtreamSerieEpisode[]>>();

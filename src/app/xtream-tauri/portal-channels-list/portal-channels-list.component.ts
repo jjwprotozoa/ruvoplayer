@@ -26,6 +26,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { XtreamCategory } from '../../../../shared/xtream-category.interface';
 import { XtreamItem } from '../../../../shared/xtream-item.interface';
 import { FilterPipe } from '../../shared/pipes/filter.pipe';
+import { ProxyImagePipe } from '../../shared/pipes/proxy-image.pipe';
 import { FavoritesService } from '../services/favorites.service';
 import { XtreamStore } from '../xtream.store';
 
@@ -55,6 +56,7 @@ interface EpgProgram {
         MatInputModule,
         TranslateModule,
         MatTooltipModule,
+        ProxyImagePipe,
     ]
 })
 export class PortalChannelsListComponent implements AfterViewInit {
