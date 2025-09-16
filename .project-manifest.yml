@@ -1,0 +1,13 @@
+title: Ruvo Play
+include: true
+visibility: featured
+status: complete
+tier: flagship
+stack: [React, TypeScript, Tailwind, Node, Firebase, HLS.js, Cloudflare Workers]
+roles: [Founder, Full-stack, Product]
+homepage_url: https://ruvoplay.com
+highlights:
+  - Activation codes via Cloudflare Workers & KV
+  - Stripe + PayFast hybrid billing with proration
+  - Chromecast + ABR playback (HLS.js)
+topics: [portfolio:include, domain:saas, automation, streaming]
