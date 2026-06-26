@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm nx build web --configuration=production",
+  "outputDirectory": "dist/apps/web/browser",
+  "installCommand": "pnpm install",
+  "framework": null
+}
