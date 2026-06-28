@@ -12,6 +12,9 @@ import { TranslateModule } from '@ngx-translate/core';
 export class SettingsAboutSectionComponent {
     readonly activeSection = input.required<string>();
     readonly isDesktop = input(false);
+    readonly isPwa = input(false);
     readonly version = input<string | undefined>();
     readonly updateMessage = input<string | undefined>();
+    readonly desktopReleasesUrl = input.required<string>();
+    readonly githubProjectUrl = input.required<string>();
 }

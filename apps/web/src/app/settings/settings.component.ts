@@ -44,6 +44,10 @@ import {
 } from '@iptvnator/shared/interfaces';
 import { SettingsStore } from '../services/settings-store.service';
 import { SettingsService } from './../services/settings.service';
+import {
+    getRuntimeDesktopReleasesUrl,
+    getRuntimeGithubProjectUrl,
+} from '../services/runtime-config';
 import { SettingsAboutSectionComponent } from './settings-about-section.component';
 import { SettingsBackupSectionComponent } from './settings-backup-section.component';
 import { SettingsDashboardSectionComponent } from './settings-dashboard-section.component';
@@ -157,6 +161,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     );
 
     readonly isPwa = this.runtime.isPwa;
+    readonly desktopReleasesUrl = getRuntimeDesktopReleasesUrl();
+    readonly githubProjectUrl = getRuntimeGithubProjectUrl();
 
     private readonly settingsCtx = inject(SettingsContextService);
     readonly activeSection = this.settingsCtx.activeSection;
@@ -250,7 +256,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.setSettings();
         this.bindDashboardControlsEnabledState();
         void this.loadEmbeddedMpvSupport();
-        this.checkAppVersion();
+        if (this.isDesktop) {
+            this.checkAppVersion();
+        }
         void this.fetchLocalIpAddresses();
 
         if (!this.isDialog) {

@@ -395,7 +395,11 @@
         "DASHBOARD_RAIL_SOURCES": "Недавно использованные источники",
         "DASHBOARD_RAIL_SOURCES_DESCRIPTION": "Показывать быстрый доступ к недавно использованным плейлистам и порталам.",
         "DASHBOARD_RAIL_XTREAM_ADDED": "Недавно добавленное на Xtream",
-        "DASHBOARD_RAIL_XTREAM_ADDED_DESCRIPTION": "Показывать новые фильмы, сериалы и каналы Xtream."
+        "DASHBOARD_RAIL_XTREAM_ADDED_DESCRIPTION": "Показывать новые фильмы, сериалы и каналы Xtream.",
+        "DESKTOP_APP_TITLE": "Desktop app",
+        "DESKTOP_APP_DESCRIPTION": "Get the full desktop experience with EPG, offline downloads, local file import, and external MPV/VLC playback.",
+        "DESKTOP_APP_DOWNLOAD": "Download for desktop",
+        "DESKTOP_APP_PLATFORMS": "macOS, Windows, and Linux"
     },
     "THEMES": {
         "DARK_THEME": "Тёмная",
