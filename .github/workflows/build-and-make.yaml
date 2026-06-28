@@ -19,6 +19,7 @@ jobs:
         runs-on: ${{ matrix.runner }}
         timeout-minutes: 120
         strategy:
+            fail-fast: false
             matrix:
                 include:
                     # macOS builds - separate runners to avoid native module conflicts
@@ -234,6 +235,10 @@ jobs:
                   if [ -z "${WINDOWS_RUNTIME_URL}" ] && [ -z "${WINDOWS_RUNTIME_SHA256}" ]; then
                       case "${GITHUB_REF}" in
                           refs/tags/v*)
+                              if [ "${GITHUB_REPOSITORY}" != "4gray/iptvnator" ]; then
+                                  WINDOWS_RUNTIME_URL="${IPTVNATOR_DEFAULT_WINDOWS_EMBEDDED_MPV_RUNTIME_URL}"
+                                  WINDOWS_RUNTIME_SHA256="${IPTVNATOR_DEFAULT_WINDOWS_EMBEDDED_MPV_RUNTIME_SHA256}"
+                              fi
                               ;;
                           *)
                               WINDOWS_RUNTIME_URL="${IPTVNATOR_DEFAULT_WINDOWS_EMBEDDED_MPV_RUNTIME_URL}"
