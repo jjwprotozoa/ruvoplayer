@@ -16,6 +16,7 @@ import {
 import { DataService } from '@iptvnator/services';
 import {
     createDevLogger,
+    createXtreamPlaylistFromImportUrl,
     ERROR,
     Playlist,
     PLAYLIST_PARSE_BY_URL,
@@ -25,6 +26,7 @@ import {
     XTREAM_REQUEST,
     XTREAM_RESPONSE,
 } from '@iptvnator/shared/interfaces';
+import { v4 as uuid } from 'uuid';
 import { AppConfig } from '../../environments/environment';
 import {
     createPortalDebugErrorEvent,
@@ -33,7 +35,7 @@ import {
     logPortalDebugEvent,
     logPortalDebugRequest,
 } from '@iptvnator/portal/shared/util';
-import { getRuntimeBackendUrl } from './runtime-config';
+import { getRuntimeBackendUrl, getRuntimeBackendUrls } from './runtime-config';
 
 interface PwaXtreamResponse {
     readonly payload?: unknown;
@@ -214,17 +216,27 @@ export class PwaService extends DataService {
         }
 
         const title = payload.title?.trim() || undefined;
+        const xtreamPlaylist = createXtreamPlaylistFromImportUrl(payload.url, {
+            id: uuid(),
+            title,
+        });
+        if (xtreamPlaylist) {
+            this.store.dispatch(
+                PlaylistActions.addPlaylist({
+                    playlist: xtreamPlaylist,
+                })
+            );
+            return;
+        }
 
         this.getPlaylistFromUrl(payload.url)
             .pipe(
                 catchError((error) => {
                     this.snackBar.open(
-                        this.getErrorMessageByStatusCode(
-                            this.extractHttpStatusCode(error)
-                        ),
+                        this.getPlaylistFetchErrorMessage(error),
                         'Close',
                         {
-                            duration: 5000,
+                            duration: 7000,
                         }
                     );
                     return throwError(() => error);
@@ -266,6 +278,36 @@ export class PwaService extends DataService {
                 break;
         }
         return this.translateService.instant(messageKey);
+    }
+
+    private getPlaylistFetchErrorMessage(error: unknown): string {
+        const backendMessage = this.extractBackendErrorMessage(error);
+        if (backendMessage) {
+            return backendMessage;
+        }
+
+        return this.getErrorMessageByStatusCode(
+            this.extractHttpStatusCode(error)
+        );
+    }
+
+    private extractBackendErrorMessage(error: unknown): string | null {
+        if (!error || typeof error !== 'object' || !('error' in error)) {
+            return null;
+        }
+
+        const payload = (error as { error?: unknown }).error;
+        if (
+            payload &&
+            typeof payload === 'object' &&
+            'message' in payload &&
+            typeof payload.message === 'string' &&
+            payload.message.trim().length > 0
+        ) {
+            return payload.message.trim();
+        }
+
+        return null;
     }
 
     private extractHttpStatusCode(error: unknown): number | null {
@@ -547,34 +589,53 @@ export class PwaService extends DataService {
     }
 
     getPlaylistFromUrl(url: string): Observable<Playlist> {
-        return from(this.getProviderTargetId(url)).pipe(
-            switchMap((targetId) =>
-                this.http.get<Playlist>(`${this.corsProxyUrl}/parse`, {
-                    params: { targetId },
-                })
-            )
-        );
+        return from(this.fetchPlaylistFromRegisteredBackends(url));
     }
 
-    private getProviderTargetId(url: string): Promise<string> {
-        const cachedTargetId = this.providerTargetIds.get(url);
+    private async fetchPlaylistFromRegisteredBackends(
+        url: string
+    ): Promise<Playlist> {
+        let lastError: unknown;
+
+        for (const backendUrl of getRuntimeBackendUrls()) {
+            try {
+                const targetId = await this.getProviderTargetId(url, backendUrl);
+                return await firstValueFrom(
+                    this.http.get<Playlist>(`${backendUrl}/parse`, {
+                        params: { targetId },
+                    })
+                );
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError ?? new Error('Failed to fetch playlist');
+    }
+
+    private getProviderTargetId(
+        url: string,
+        backendUrl = this.corsProxyUrl
+    ): Promise<string> {
+        const cacheKey = `${backendUrl}|${url}`;
+        const cachedTargetId = this.providerTargetIds.get(cacheKey);
         if (cachedTargetId) {
             return cachedTargetId;
         }
 
         const targetIdRequest = firstValueFrom(
             this.http.post<ProviderTargetRegistration>(
-                `${this.corsProxyUrl}/provider-targets`,
+                `${backendUrl}/provider-targets`,
                 { url }
             )
         )
             .then((response) => response.targetId)
             .catch((error) => {
-                this.providerTargetIds.delete(url);
+                this.providerTargetIds.delete(cacheKey);
                 throw error;
             });
 
-        this.providerTargetIds.set(url, targetIdRequest);
+        this.providerTargetIds.set(cacheKey, targetIdRequest);
         return targetIdRequest;
     }
 

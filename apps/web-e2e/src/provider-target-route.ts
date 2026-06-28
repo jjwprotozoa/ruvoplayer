@@ -4,7 +4,7 @@ interface ProviderTargetPayload {
     readonly url: string;
 }
 
-const BACKEND_ORIGIN = 'http://localhost:3000';
+const BACKEND_ORIGIN = 'http://localhost:3333';
 const CORS_HEADERS = {
     'access-control-allow-headers': 'content-type',
     'access-control-allow-methods': 'POST, OPTIONS',

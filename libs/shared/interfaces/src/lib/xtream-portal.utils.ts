@@ -17,6 +17,15 @@ export interface XtreamCredentialsFromUrl {
     username: string;
 }
 
+export interface XtreamConnectionFromUrl extends XtreamCredentialsFromUrl {
+    serverUrl: string;
+}
+
+export interface XtreamPlaylistImportOptions {
+    readonly id?: string;
+    readonly title?: string;
+}
+
 const XTREAM_API_ENDPOINT_PATTERN = /\/(?:get|player_api)\.php$/i;
 
 export function normalizeXtreamServerUrl(value: string): string {
@@ -61,6 +70,76 @@ export function extractXtreamCredentialsFromUrl(
     }
 
     return { username, password };
+}
+
+export function isXtreamPlaylistImportUrl(value: string): boolean {
+    return resolveXtreamConnectionFromUrl(value) !== null;
+}
+
+export function resolveXtreamConnectionFromUrl(
+    value: string
+): XtreamConnectionFromUrl | null {
+    const credentials = extractXtreamCredentialsFromUrl(value);
+    if (!credentials) {
+        return null;
+    }
+
+    try {
+        const url = new URL(value.trim());
+        const pathWithoutTrailingSlash = url.pathname.replace(/\/+$/, '');
+        if (!XTREAM_API_ENDPOINT_PATTERN.test(pathWithoutTrailingSlash)) {
+            return null;
+        }
+
+        return {
+            ...credentials,
+            serverUrl: normalizeXtreamServerUrl(value),
+        };
+    } catch {
+        return null;
+    }
+}
+
+export function createXtreamPlaylistFromImportUrl(
+    value: string,
+    options: XtreamPlaylistImportOptions = {}
+): {
+    _id: string;
+    autoRefresh: false;
+    count: 0;
+    importDate: string;
+    lastUsage: string;
+    password: string;
+    serverUrl: string;
+    title: string;
+    username: string;
+} | null {
+    const connection = resolveXtreamConnectionFromUrl(value);
+    if (!connection) {
+        return null;
+    }
+
+    const now = new Date().toISOString();
+    let defaultTitle = 'Xtream Portal';
+    try {
+        defaultTitle = new URL(connection.serverUrl).hostname;
+    } catch {
+        // keep fallback title
+    }
+
+    return {
+        _id:
+            options.id ??
+            `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 9)}`,
+        autoRefresh: false,
+        count: 0,
+        importDate: now,
+        lastUsage: now,
+        password: connection.password,
+        serverUrl: connection.serverUrl,
+        title: options.title?.trim() || defaultTitle,
+        username: connection.username,
+    };
 }
 
 export function resolveXtreamPortalStatus(

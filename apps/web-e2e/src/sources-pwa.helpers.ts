@@ -6,7 +6,7 @@ import {
     interceptProviderTargetRegistration,
 } from './provider-target-route';
 
-const BACKEND_ORIGIN = 'http://localhost:3000';
+const BACKEND_ORIGIN = 'http://localhost:3333';
 const XTREAM_MOCK_PORT = process.env['XTREAM_MOCK_PORT'] ?? '3211';
 const STALKER_MOCK_PORT = process.env['MOCK_PORT'] ?? '3210';
 

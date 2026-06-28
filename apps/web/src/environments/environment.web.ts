@@ -4,5 +4,6 @@ export const AppConfig = {
     production: false,
     environment: 'WEB',
     version: packageJson.version,
-    BACKEND_URL: 'http://localhost:3333',
+    BACKEND_URL: 'https://ruvoplayer-api.vercel.app',
+    BACKEND_URL_BACKUP: 'https://ruvoplayer-api-backup.vercel.app',
 };

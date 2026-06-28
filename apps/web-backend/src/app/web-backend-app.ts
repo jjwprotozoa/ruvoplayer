@@ -1,26 +1,23 @@
 import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
-import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import zlib from 'node:zlib';
-import axios from 'axios';
 import epgParser from 'epg-parser';
 import parser from 'iptv-playlist-parser';
 import { normalizeXtreamServerUrl } from '@iptvnator/shared/interfaces';
+import {
+    createDefaultHttpClient,
+    extractPlaylistFetchError,
+    type WebBackendHttpClient,
+    type WebBackendHttpGetOptions,
+} from './web-backend-http-client';
+import {
+    describeInvalidM3uContent,
+    normalizeM3uContent,
+} from '@iptvnator/shared/m3u-utils';
 
-export interface WebBackendHttpGetOptions {
-    readonly headers?: Record<string, string>;
-    readonly params?: Record<string, string>;
-    readonly responseType?: 'arraybuffer';
-}
-
-export interface WebBackendHttpClient {
-    get<T>(
-        url: string,
-        options?: WebBackendHttpGetOptions
-    ): Promise<{ data: T }>;
-}
+export type { WebBackendHttpClient, WebBackendHttpGetOptions };
 
 interface ProviderError extends Error {
     readonly response?: {
@@ -54,13 +51,12 @@ interface ProviderUrlError {
     readonly status: number;
 }
 
-type ProviderTargetRegistry = Map<string, URL>;
-
 export function createWebBackendApp(
     options: WebBackendAppOptions = {}
 ): Express {
     const app = express();
-    const httpClient = (options.httpClient ?? axios) as WebBackendHttpClient;
+    const httpClient = (options.httpClient ??
+        createDefaultHttpClient()) as WebBackendHttpClient;
     const guid = options.guid ?? createGuid;
     const now = options.now ?? (() => new Date());
     const clientOrigins = options.clientOrigins ?? getClientOrigins();
@@ -72,8 +68,6 @@ export function createWebBackendApp(
             isPrivateNetworkProxyAllowed(),
         resolveHostname: options.resolveHostname ?? resolveHostname,
     };
-    const providerTargets: ProviderTargetRegistry = new Map();
-
     const corsMiddleware = cors({
         origin(origin, callback) {
             if (
@@ -127,13 +121,12 @@ export function createWebBackendApp(
             }
 
             const targetId = createProviderTargetId(result);
-            providerTargets.set(targetId, result);
             res.json({ targetId });
         }
     );
 
     app.get('/parse', corsMiddleware, async (req, res) => {
-        const url = getRegisteredProviderUrl(req, res, providerTargets);
+        const url = await getRegisteredProviderUrl(req, res, providerUrlPolicy);
         if (!url) {
             return;
         }
@@ -146,6 +139,7 @@ export function createWebBackendApp(
         });
 
         if (isPlaylistParseError(result)) {
+            console.error('[web-backend] Playlist parse failed:', result);
             res.status(result.status).json(result);
             return;
         }
@@ -154,7 +148,7 @@ export function createWebBackendApp(
     });
 
     app.get('/parse-xml', corsMiddleware, async (req, res) => {
-        const url = getRegisteredProviderUrl(req, res, providerTargets);
+        const url = await getRegisteredProviderUrl(req, res, providerUrlPolicy);
         if (!url) {
             return;
         }
@@ -177,10 +171,10 @@ export function createWebBackendApp(
     });
 
     app.get('/xtream', corsMiddleware, async (req, res) => {
-        const registeredUrl = getRegisteredProviderUrl(
+        const registeredUrl = await getRegisteredProviderUrl(
             req,
             res,
-            providerTargets
+            providerUrlPolicy
         );
         if (!registeredUrl) {
             return;
@@ -216,7 +210,7 @@ export function createWebBackendApp(
     });
 
     app.get('/stalker', corsMiddleware, async (req, res) => {
-        const url = getRegisteredProviderUrl(req, res, providerTargets);
+        const url = await getRegisteredProviderUrl(req, res, providerUrlPolicy);
         const macAddress = getQueryString(req, 'macAddress');
         const token = getQueryString(req, 'token');
         if (!url) {
@@ -246,27 +240,24 @@ export function createWebBackendApp(
     return app;
 }
 
-function getRegisteredProviderUrl(
+async function getRegisteredProviderUrl(
     req: Request,
     res: Response,
-    providerTargets: ProviderTargetRegistry
-): URL | null {
+    policy: ProviderUrlPolicy
+): Promise<URL | null> {
     const targetId = getQueryString(req, 'targetId');
     if (!targetId) {
         res.status(400).json({ message: 'Missing targetId', status: 400 });
         return null;
     }
 
-    const targetUrl = providerTargets.get(targetId);
-    if (!targetUrl) {
-        res.status(404).json({
-            message: 'Provider target not found',
-            status: 404,
-        });
+    const result = await resolveProviderTargetId(targetId, policy);
+    if ('message' in result) {
+        res.status(result.status).json(result);
         return null;
     }
 
-    return targetUrl;
+    return result;
 }
 
 async function validateProviderUrl(
@@ -341,7 +332,25 @@ async function resolveHostname(hostname: string): Promise<readonly string[]> {
 }
 
 function createProviderTargetId(url: URL): string {
-    return createHash('sha256').update(url.href).digest('hex');
+    return Buffer.from(url.href, 'utf8').toString('base64url');
+}
+
+async function resolveProviderTargetId(
+    targetId: string,
+    policy: ProviderUrlPolicy
+): Promise<URL | ProviderUrlError> {
+    let rawUrl: string;
+    try {
+        rawUrl = Buffer.from(targetId, 'base64url').toString('utf8');
+    } catch {
+        return { message: 'Provider target not found', status: 404 };
+    }
+
+    if (!/^https?:\/\//i.test(rawUrl)) {
+        return { message: 'Provider target not found', status: 404 };
+    }
+
+    return validateProviderUrl(rawUrl, policy);
 }
 
 function isPrivateNetworkProxyAllowed(): boolean {
@@ -442,7 +451,24 @@ async function handlePlaylistParse(options: {
         // Provider URLs are validated by /provider-targets before playlist parsing.
         // codeql[js/request-forgery]
         const response = await options.httpClient.get<string>(options.url);
-        const parsedPlaylist = parsePlaylist(response.data);
+        const playlistContent = normalizeM3uContent(response.data);
+        let parsedPlaylist: { items: Array<Record<string, unknown>> };
+        try {
+            parsedPlaylist = parsePlaylist(playlistContent);
+        } catch (parseError) {
+            if (
+                parseError instanceof Error &&
+                parseError.message === 'Playlist is not valid'
+            ) {
+                return {
+                    message: describeInvalidM3uContent(playlistContent),
+                    status: 422,
+                };
+            }
+
+            throw parseError;
+        }
+
         const title = getLastUrlSegment(options.url);
         return createPlaylistObject({
             guid: options.guid,
@@ -452,13 +478,7 @@ async function handlePlaylistParse(options: {
             url: options.url,
         });
     } catch (error) {
-        const providerError = error as ProviderError;
-        return {
-            status: providerError.response?.status ?? 500,
-            message:
-                providerError.response?.statusText ??
-                'Error, something went wrong',
-        };
+        return extractPlaylistFetchError(error);
     }
 }
 

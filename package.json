@@ -26,6 +26,7 @@
         "build:backend": "nx build electron-backend --configuration=production",
         "serve:frontend": "nx serve web --no-tui",
         "serve:frontend:pwa": "nx serve web --configuration=pwa --no-tui",
+        "serve:pwa": "nx run-many --target=serve --projects=web,web-backend --parallel=2",
         "serve:backend": "nx serve electron-backend",
         "serve:marketing-demo": "nx run-many --target=serve --projects=xtream-mock-server,electron-backend --parallel=2",
         "serve:marketing-demo:web": "nx run-many --target=serve --projects=xtream-mock-server,web --parallel=2",

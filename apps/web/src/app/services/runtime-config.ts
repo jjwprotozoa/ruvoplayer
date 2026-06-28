@@ -2,6 +2,7 @@ import { AppConfig } from '../../environments/environment';
 
 export interface IptvnatorRuntimeConfig {
     readonly BACKEND_URL?: string;
+    readonly BACKEND_URL_BACKUP?: string;
 }
 
 export function resolveBackendUrl(
@@ -12,11 +13,19 @@ export function resolveBackendUrl(
     return runtimeUrl || fallbackUrl;
 }
 
+export function getRuntimeBackendUrls(): readonly string[] {
+    const runtimeConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
+    const urls = [
+        resolveBackendUrl(runtimeConfig, AppConfig.BACKEND_URL),
+        runtimeConfig?.BACKEND_URL_BACKUP?.trim() ||
+            AppConfig.BACKEND_URL_BACKUP?.trim(),
+    ].filter((url): url is string => !!url && url.length > 0);
+
+    return [...new Set(urls)];
+}
+
 export function getRuntimeBackendUrl(): string {
-    return resolveBackendUrl(
-        globalThis.window?.__IPTVNATOR_CONFIG__,
-        AppConfig.BACKEND_URL
-    );
+    return getRuntimeBackendUrls()[0];
 }
 
 export interface ServiceWorkerRuntimeContext {

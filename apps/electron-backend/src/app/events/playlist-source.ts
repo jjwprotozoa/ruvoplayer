@@ -2,6 +2,7 @@ import type { Playlist } from '@iptvnator/shared/interfaces';
 import {
     createPlaylistObject,
     getFilenameFromUrl,
+    parseM3uPlaylistContent,
 } from '@iptvnator/shared/m3u-utils';
 import { parse } from 'iptv-playlist-parser';
 import { readFile } from 'node:fs/promises';
@@ -16,7 +17,14 @@ import { requestWithValidatedRedirects } from '../util/validated-axios';
 
 export interface PlaylistFetchOptions {
     trustedInsecureTlsHosts?: readonly string[];
+    userAgent?: string;
 }
+
+// Some providers reject the default `axios/x.y.z` User-Agent. Default to a
+// browser-like UA so playlist URL imports behave like the Xtream API path,
+// which already sends a browser User-Agent header.
+const DEFAULT_PLAYLIST_USER_AGENT =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 export async function fetchPlaylistFromUrl(
     url: string,
@@ -32,6 +40,11 @@ export async function fetchPlaylistFromUrl(
                     trustedInsecureTlsHosts: options.trustedInsecureTlsHosts,
                 }),
                 method: 'GET',
+                headers: {
+                    'User-Agent':
+                        options.userAgent?.trim() ||
+                        DEFAULT_PLAYLIST_USER_AGENT,
+                },
             },
             { allowPrivateNetworks: true }
         );
@@ -44,7 +57,7 @@ export async function fetchPlaylistFromUrl(
         throw error;
     }
 
-    const parsedPlaylist = parse(result.data);
+    const parsedPlaylist = parseM3uPlaylistContent(result.data, parse);
     const extractedName = url && url.length > 1 ? getFilenameFromUrl(url) : '';
     const playlistName =
         !extractedName || extractedName === 'Untitled playlist'
@@ -64,7 +77,12 @@ export async function fetchPlaylistFromFile(
     title: string
 ): Promise<Playlist> {
     const fileContent = await readFile(filePath, 'utf-8');
-    return createPlaylistObject(title, parse(fileContent), filePath, 'FILE');
+    return createPlaylistObject(
+        title,
+        parseM3uPlaylistContent(fileContent, parse),
+        filePath,
+        'FILE'
+    );
 }
 
 export function derivePlaylistTitleFromFilePath(filePath: string): string {

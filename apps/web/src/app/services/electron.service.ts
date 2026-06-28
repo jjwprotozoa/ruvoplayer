@@ -8,6 +8,7 @@ import { DataService, SettingsStore } from '@iptvnator/services';
 import {
     AUTO_UPDATE_PLAYLISTS,
     createDevLogger,
+    createXtreamPlaylistFromImportUrl,
     ELECTRON_BRIDGE_SECURITY_ERROR_CODES,
     ERROR,
     normalizeHost,
@@ -20,6 +21,7 @@ import {
     XTREAM_RESPONSE,
     XtreamCodeActions,
 } from '@iptvnator/shared/interfaces';
+import { v4 as uuid } from 'uuid';
 import { AppConfig } from '../../environments/environment';
 import {
     createPortalDebugRequestContext,
@@ -283,6 +285,18 @@ export class ElectronService extends DataService {
         }
 
         const title = payload.title?.trim() || undefined;
+        const xtreamPlaylist = createXtreamPlaylistFromImportUrl(payload.url, {
+            id: uuid(),
+            title,
+        });
+        if (xtreamPlaylist) {
+            this.store.dispatch(
+                PlaylistActions.addPlaylist({
+                    playlist: xtreamPlaylist,
+                })
+            );
+            return;
+        }
 
         window.electron
             .fetchPlaylistByUrl(
@@ -308,18 +322,25 @@ export class ElectronService extends DataService {
                 }
 
                 const statusCode = this.extractHttpStatusCode(error);
-                let messageKey = 'HOME.URL_UPLOAD.ERROR_FETCH_FAILED';
-                if (statusCode === 403) {
-                    messageKey = 'HOME.URL_UPLOAD.ERROR_403';
-                } else if (statusCode === 404) {
-                    messageKey = 'HOME.URL_UPLOAD.ERROR_404';
-                } else if (statusCode === 401) {
-                    messageKey = 'HOME.URL_UPLOAD.ERROR_401';
+                const backendMessage = this.extractErrorMessage(error);
+                let message: string;
+                if (backendMessage) {
+                    message = backendMessage;
+                } else {
+                    let messageKey = 'HOME.URL_UPLOAD.ERROR_FETCH_FAILED';
+                    if (statusCode === 403) {
+                        messageKey = 'HOME.URL_UPLOAD.ERROR_403';
+                    } else if (statusCode === 404) {
+                        messageKey = 'HOME.URL_UPLOAD.ERROR_404';
+                    } else if (statusCode === 401) {
+                        messageKey = 'HOME.URL_UPLOAD.ERROR_401';
+                    }
+                    message = this.translateService.instant(messageKey);
                 }
                 this.snackBar.open(
-                    this.translateService.instant(messageKey),
+                    message,
                     this.translateService.instant('CLOSE'),
-                    { duration: 5000 }
+                    { duration: 7000 }
                 );
             });
     }
@@ -339,6 +360,27 @@ export class ElectronService extends DataService {
         const msg = String((error as { message?: string })?.message ?? error);
         const match = msg.match(/status code (\d{3})/);
         return match ? parseInt(match[1], 10) : null;
+    }
+
+    private extractErrorMessage(error: unknown): string | null {
+        if (
+            error &&
+            typeof error === 'object' &&
+            'message' in error &&
+            typeof error.message === 'string' &&
+            error.message.trim().length > 0 &&
+            error.message !== 'Error invoking remote method'
+        ) {
+            const message = error.message.trim();
+            if (message.startsWith('Error invoking remote method')) {
+                const ipcMessage = message.split(': ').slice(1).join(': ').trim();
+                return ipcMessage.length > 0 ? ipcMessage : null;
+            }
+
+            return message;
+        }
+
+        return null;
     }
 
     private async updateM3uPlaylistFromFile(data: {

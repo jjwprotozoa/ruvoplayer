@@ -41,7 +41,7 @@ const EPG_PASSWORD = 'epg';
 async function interceptXtreamRequests(page: Page): Promise<void> {
     const providerTargets = await interceptProviderTargetRegistration(page);
 
-    await page.route('**/localhost:3000/xtream**', async (route) => {
+    await page.route('**/localhost:3333/xtream**', async (route) => {
         const originalUrl = new URL(route.request().url());
         const mockUrl = new URL(`${MOCK_SERVER}/xtream`);
         const providerUrl = getRegisteredProviderUrl(

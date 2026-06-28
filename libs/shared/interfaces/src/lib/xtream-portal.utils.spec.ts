@@ -1,6 +1,9 @@
 import {
+    createXtreamPlaylistFromImportUrl,
     extractXtreamCredentialsFromUrl,
+    isXtreamPlaylistImportUrl,
     normalizeXtreamServerUrl,
+    resolveXtreamConnectionFromUrl,
     resolveXtreamPortalStatus,
 } from './xtream-portal.utils';
 
@@ -44,6 +47,47 @@ describe('xtream portal utilities', () => {
             expect(
                 extractXtreamCredentialsFromUrl('https://example.com/get.php')
             ).toBeNull();
+        });
+    });
+
+    describe('resolveXtreamConnectionFromUrl', () => {
+        it('detects full get.php playlist URLs', () => {
+            expect(
+                resolveXtreamConnectionFromUrl(
+                    'http://cf.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts'
+                )
+            ).toEqual({
+                serverUrl: 'http://cf.ruvoplay.org',
+                username: 'test1',
+                password: '0050256122',
+            });
+        });
+
+        it('returns null for regular M3U URLs', () => {
+            expect(
+                isXtreamPlaylistImportUrl(
+                    'https://iptv-org.github.io/iptv/index.m3u'
+                )
+            ).toBe(false);
+        });
+
+        it('builds an Xtream playlist payload from a get.php URL', () => {
+            expect(
+                createXtreamPlaylistFromImportUrl(
+                    'http://ruvoplay.org/get.php?username=test1&password=secret&type=m3u_plus',
+                    { id: 'playlist-1', title: 'My Portal' }
+                )
+            ).toEqual(
+                expect.objectContaining({
+                    _id: 'playlist-1',
+                    autoRefresh: false,
+                    count: 0,
+                    password: 'secret',
+                    serverUrl: 'http://ruvoplay.org',
+                    title: 'My Portal',
+                    username: 'test1',
+                })
+            );
         });
     });
 

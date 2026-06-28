@@ -10,6 +10,7 @@ import {
     PLAYLIST_PARSE_BY_URL,
     SECURITY_ERROR_PREFIX,
 } from '@iptvnator/shared/interfaces';
+import { PlaylistActions } from '@iptvnator/m3u-state';
 import { ElectronService } from './electron.service';
 
 describe('ElectronService', () => {
@@ -20,6 +21,7 @@ describe('ElectronService', () => {
         openInVlc: jest.Mock;
     };
     let snackBar: { open: jest.Mock };
+    let store: { dispatch: jest.Mock };
     let service: ElectronService;
 
     beforeEach(() => {
@@ -34,6 +36,9 @@ describe('ElectronService', () => {
             open: jest.fn(() => ({
                 onAction: () => of(undefined),
             })),
+        };
+        store = {
+            dispatch: jest.fn(),
         };
 
         Object.defineProperty(window, 'electron', {
@@ -69,9 +74,7 @@ describe('ElectronService', () => {
                 },
                 {
                     provide: Store,
-                    useValue: {
-                        dispatch: jest.fn(),
-                    },
+                    useValue: store,
                 },
                 {
                     provide: TranslateService,
@@ -97,6 +100,25 @@ describe('ElectronService', () => {
         await service.sendIpcEvent(PLAYLIST_PARSE_BY_URL);
 
         expect(electronBridge.fetchPlaylistByUrl).not.toHaveBeenCalled();
+    });
+
+    it('imports get.php URLs as Xtream playlists without fetching M3U content', async () => {
+        await service.sendIpcEvent(PLAYLIST_PARSE_BY_URL, {
+            url: 'http://cf.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts',
+            title: 'Portal',
+        });
+
+        expect(electronBridge.fetchPlaylistByUrl).not.toHaveBeenCalled();
+        expect(store.dispatch).toHaveBeenCalledWith(
+            PlaylistActions.addPlaylist({
+                playlist: expect.objectContaining({
+                    password: '0050256122',
+                    serverUrl: 'http://cf.ruvoplay.org',
+                    title: 'Portal',
+                    username: 'test1',
+                }),
+            })
+        );
     });
 
     it('shows the trust-host action for Electron-wrapped security errors', async () => {

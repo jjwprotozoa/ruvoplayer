@@ -19,7 +19,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PlaylistType } from '@iptvnator/playlist/shared/ui';
 import { PlaylistActions } from '@iptvnator/m3u-state';
 import { DataService } from '@iptvnator/services';
-import { PLAYLIST_PARSE_BY_URL } from '@iptvnator/shared/interfaces';
+import { PLAYLIST_PARSE_BY_URL, createXtreamPlaylistFromImportUrl } from '@iptvnator/shared/interfaces';
+import { v4 as uuid } from 'uuid';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { StalkerPortalImportComponent } from '../stalker-portal-import/stalker-portal-import.component';
 import { TextImportComponent } from '../text-import/text-import.component';
@@ -156,6 +157,20 @@ export class AddPlaylistDialogComponent {
         const playlistName = this.normalizeOptionalValue(
             formValue?.playlistName
         );
+
+        const xtreamPlaylist = createXtreamPlaylistFromImportUrl(playlistUrl, {
+            id: uuid(),
+            title: playlistName,
+        });
+        if (xtreamPlaylist) {
+            this.store.dispatch(
+                PlaylistActions.addPlaylist({
+                    playlist: xtreamPlaylist,
+                })
+            );
+            this.closeDialog();
+            return;
+        }
 
         this.dataService.sendIpcEvent(PLAYLIST_PARSE_BY_URL, {
             url: playlistUrl,

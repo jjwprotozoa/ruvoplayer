@@ -1,4 +1,8 @@
-import { resolveBackendUrl, shouldEnableServiceWorker } from './runtime-config';
+import {
+    getRuntimeBackendUrls,
+    resolveBackendUrl,
+    shouldEnableServiceWorker,
+} from './runtime-config';
 
 describe('runtime config helpers', () => {
     it('uses runtime BACKEND_URL when provided', () => {
@@ -25,7 +29,27 @@ describe('runtime config helpers', () => {
         ).toBe('https://fallback.example');
     });
 
-    it('enables service worker only for production builds with browser support', () => {
+    it('collects primary and backup backend URLs without duplicates', () => {
+        const originalConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
+        globalThis.window = {
+            ...globalThis.window,
+            __IPTVNATOR_CONFIG__: {
+                BACKEND_URL: 'https://primary.example',
+                BACKEND_URL_BACKUP: 'https://backup.example',
+            },
+        } as Window & typeof globalThis;
+
+        expect(getRuntimeBackendUrls()).toEqual([
+            'https://primary.example',
+            'https://backup.example',
+        ]);
+
+        globalThis.window = {
+            ...globalThis.window,
+            __IPTVNATOR_CONFIG__: originalConfig,
+        } as Window & typeof globalThis;
+    });
+
         expect(
             shouldEnableServiceWorker(true, {
                 serviceWorker: {},

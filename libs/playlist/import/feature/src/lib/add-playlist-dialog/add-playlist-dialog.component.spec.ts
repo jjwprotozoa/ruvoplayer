@@ -107,6 +107,33 @@ describe('AddPlaylistDialogComponent', () => {
         expect(dialogRef.close).toHaveBeenCalled();
     });
 
+    it('imports get.php URLs as Xtream playlists instead of M3U fetches', () => {
+        (component as { urlUpload: jest.Mock }).urlUpload = jest.fn(() => ({
+            form: {
+                getRawValue: () => ({
+                    playlistName: 'Ruvo Portal',
+                    playlistUrl:
+                        'http://cf.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts',
+                }),
+            },
+        }));
+
+        component.submitUrlPlaylist();
+
+        expect(store.dispatch).toHaveBeenCalledWith(
+            PlaylistActions.addPlaylist({
+                playlist: expect.objectContaining({
+                    password: '0050256122',
+                    serverUrl: 'http://cf.ruvoplay.org',
+                    title: 'Ruvo Portal',
+                    username: 'test1',
+                }),
+            })
+        );
+        expect(dataService.sendIpcEvent).not.toHaveBeenCalled();
+        expect(dialogRef.close).toHaveBeenCalled();
+    });
+
     it('dispatches imported text and closes the dialog', () => {
         component.uploadAsText('#EXTM3U');
 

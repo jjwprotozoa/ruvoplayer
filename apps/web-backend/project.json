@@ -32,6 +32,7 @@
                     "CLIENT_URL": "http://localhost:4200",
                     "BACKEND_URL": "/api",
                     "IPTVNATOR_PROXY_ALLOW_PRIVATE_NETWORKS": "1",
+                    "IPTVNATOR_ALLOW_INSECURE_TLS": "1",
                     "TSX_TSCONFIG_PATH": "tsconfig.base.json"
                 }
             }

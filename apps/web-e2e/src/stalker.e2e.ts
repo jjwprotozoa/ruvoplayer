@@ -47,7 +47,7 @@ const MINIMAL_MAC = '00:1A:79:00:00:03';
 async function interceptStalkerRequests(page: Page): Promise<void> {
     const providerTargets = await interceptProviderTargetRegistration(page);
 
-    await page.route('**/localhost:3000/stalker**', async (route) => {
+    await page.route('**/localhost:3333/stalker**', async (route) => {
         const originalUrl = new URL(route.request().url());
         const mockUrl = new URL(BACKEND_PROXY);
         const providerUrl = getRegisteredProviderUrl(

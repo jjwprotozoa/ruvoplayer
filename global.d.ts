@@ -14,9 +14,10 @@ declare module 'video.js' {
 declare global {
     type ElectronDbOperationEvent = ElectronBridgeDbOperationEvent;
 
-    interface Window {
+        interface Window {
         __IPTVNATOR_CONFIG__?: {
             BACKEND_URL?: string;
+            BACKEND_URL_BACKUP?: string;
         };
         electron: ElectronBridgeApi;
         process: NodeJS.Process;
