@@ -21,6 +21,7 @@ export class SettingsBackupSectionComponent {
     readonly isPwa = input(false);
     readonly isRemovingAllPlaylists = input(false);
     readonly isExportingData = input(false);
+    readonly desktopReleasesUrl = input.required<string>();
 
     readonly importData = output<void>();
     readonly exportData = output<void>();

@@ -85,6 +85,7 @@
             <app-settings-backup-section
                 [activeSection]="activeSection()"
                 [isPwa]="isPwa"
+                [desktopReleasesUrl]="desktopReleasesUrl"
                 [isRemovingAllPlaylists]="isRemovingAllPlaylists()"
                 [isExportingData]="isExportingData()"
                 (importData)="importData()"
@@ -103,8 +104,11 @@
             <app-settings-about-section
                 [activeSection]="activeSection()"
                 [isDesktop]="isDesktop"
+                [isPwa]="isPwa"
                 [version]="version"
                 [updateMessage]="updateMessage"
+                [desktopReleasesUrl]="desktopReleasesUrl"
+                [githubProjectUrl]="githubProjectUrl"
             />
 
             <footer class="action-bar" data-test-id="settings-action-bar">

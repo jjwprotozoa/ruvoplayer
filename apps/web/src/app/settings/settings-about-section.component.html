@@ -35,6 +35,41 @@
         </div>
     }
 
+    @if (isPwa()) {
+        <div class="setting-item setting-item--full-control">
+            <div class="setting-item__meta">
+                <h4>{{ 'SETTINGS.DESKTOP_APP_TITLE' | translate }}</h4>
+                <p>{{ 'SETTINGS.DESKTOP_APP_DESCRIPTION' | translate }}</p>
+            </div>
+            <div class="setting-item__control">
+                <div class="link-cards">
+                    <a
+                        class="link-card link-card--github"
+                        [href]="desktopReleasesUrl()"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        data-test-id="link-desktop-download"
+                    >
+                        <span class="link-card__glyph">
+                            <mat-icon>download</mat-icon>
+                        </span>
+                        <span class="link-card__text">
+                            <strong>{{
+                                'SETTINGS.DESKTOP_APP_DOWNLOAD' | translate
+                            }}</strong>
+                            <span>{{
+                                'SETTINGS.DESKTOP_APP_PLATFORMS' | translate
+                            }}</span>
+                        </span>
+                        <mat-icon class="link-card__arrow"
+                            >arrow_outward</mat-icon
+                        >
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="setting-item setting-item--full-control">
         <div class="setting-item__meta">
             <h4>{{ 'SETTINGS.COMMUNITY' | translate }}</h4>
@@ -44,7 +79,7 @@
             <div class="link-cards">
                 <a
                     class="link-card link-card--github"
-                    href="https://github.com/4gray/iptvnator"
+                    [href]="githubProjectUrl()"
                     target="_blank"
                     rel="noreferrer noopener"
                     data-test-id="link-github"

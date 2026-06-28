@@ -3,14 +3,23 @@ import { AppConfig } from '../../environments/environment';
 export interface IptvnatorRuntimeConfig {
     readonly BACKEND_URL?: string;
     readonly BACKEND_URL_BACKUP?: string;
+    readonly GITHUB_REPO?: string;
+    readonly DESKTOP_RELEASES_URL?: string;
+}
+
+function resolveRuntimeString(
+    runtimeValue: string | undefined,
+    fallbackValue: string
+): string {
+    const trimmed = runtimeValue?.trim();
+    return trimmed || fallbackValue;
 }
 
 export function resolveBackendUrl(
     runtimeConfig: IptvnatorRuntimeConfig | undefined,
     fallbackUrl: string
 ): string {
-    const runtimeUrl = runtimeConfig?.BACKEND_URL?.trim();
-    return runtimeUrl || fallbackUrl;
+    return resolveRuntimeString(runtimeConfig?.BACKEND_URL, fallbackUrl);
 }
 
 export function getRuntimeBackendUrls(): readonly string[] {
@@ -26,6 +35,23 @@ export function getRuntimeBackendUrls(): readonly string[] {
 
 export function getRuntimeBackendUrl(): string {
     return getRuntimeBackendUrls()[0];
+}
+
+export function getRuntimeGithubRepo(): string {
+    const runtimeConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
+    return resolveRuntimeString(runtimeConfig?.GITHUB_REPO, AppConfig.GITHUB_REPO);
+}
+
+export function getRuntimeGithubProjectUrl(): string {
+    return `https://github.com/${getRuntimeGithubRepo()}`;
+}
+
+export function getRuntimeDesktopReleasesUrl(): string {
+    const runtimeConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
+    return resolveRuntimeString(
+        runtimeConfig?.DESKTOP_RELEASES_URL,
+        AppConfig.DESKTOP_RELEASES_URL
+    );
 }
 
 export interface ServiceWorkerRuntimeContext {

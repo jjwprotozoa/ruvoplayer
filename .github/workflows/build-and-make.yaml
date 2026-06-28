@@ -4,11 +4,13 @@ on:
     push:
         branches:
             - master
+            - ruvo-branding
         tags:
             - 'v*.*.*'
     pull_request:
         branches:
             - master
+            - ruvo-branding
     workflow_dispatch:
 
 jobs:
@@ -104,9 +106,9 @@ jobs:
               run: pnpm nx build web --skip-nx-cache
 
             - name: Resolve embedded MPV runtime cache key
-              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master')
+              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding')
               id: embedded-mpv-runtime-cache-key
               shell: bash
               env:
@@ -177,9 +179,9 @@ jobs:
                   NODE
 
             - name: Restore embedded MPV runtime cache
-              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master')
+              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding')
               id: embedded-mpv-runtime-cache
               uses: actions/cache/restore@v4
               with:
@@ -190,9 +192,9 @@ jobs:
                   key: ${{ steps.embedded-mpv-runtime-cache-key.outputs.key }}
 
             - name: Clear stale embedded MPV runtime files
-              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
+              if: matrix.embedded_mpv_platform && !startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding') && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
               shell: bash
               run: |
                   set -euo pipefail
@@ -203,9 +205,9 @@ jobs:
                       "vendor/embedded-mpv/${{ matrix.embedded_mpv_platform }}-${{ matrix.embedded_mpv_arch }}/runtime-manifest.json"
 
             - name: Build embedded MPV runtime (macOS release)
-              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.embedded_mpv_build_runtime && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master') && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
+              if: matrix.embedded_mpv_build_runtime && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding') && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
               shell: bash
               run: |
                   set -euo pipefail
@@ -288,13 +290,13 @@ jobs:
               env:
                   IPTVNATOR_EMBEDDED_MPV_PLATFORM: ${{ matrix.embedded_mpv_platform || '' }}
                   IPTVNATOR_EMBEDDED_MPV_ARCH: ${{ matrix.embedded_mpv_arch || matrix.arch || '' }}
-                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master'))) && '1' || '0' }}
+                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'))) && '1' || '0' }}
               run: pnpm run build:backend
 
             - name: Verify embedded MPV build output
-              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master'))
+              if: matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'))
               shell: bash
               run: |
                   set -euo pipefail
@@ -380,7 +382,7 @@ jobs:
                   "
 
             - name: Validate macOS signing configuration
-              if: matrix.os == 'macos' && github.event_name != 'pull_request'
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository == '4gray/iptvnator'
               shell: bash
               env:
                   CSC_NAME: ${{ vars.CSC_NAME }}
@@ -427,7 +429,7 @@ jobs:
                   fi
 
             - name: Prepare macOS notarization credentials
-              if: matrix.os == 'macos' && github.event_name != 'pull_request'
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository == '4gray/iptvnator'
               shell: bash
               env:
                   APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY }}
@@ -460,7 +462,7 @@ jobs:
                   fi
 
             - name: Make Electron app (macOS)
-              if: matrix.os == 'macos' && github.event_name != 'pull_request'
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository == '4gray/iptvnator'
               env:
                   CSC_NAME: ${{ vars.CSC_NAME }}
                   CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -468,13 +470,13 @@ jobs:
                   DEBUG: electron-builder,electron-notarize*
                   IPTVNATOR_EMBEDDED_MPV_PLATFORM: ${{ matrix.embedded_mpv_platform }}
                   IPTVNATOR_EMBEDDED_MPV_ARCH: ${{ matrix.embedded_mpv_arch }}
-                  # TEMPORARY MASTER ARTIFACT TEST: remove `|| github.ref == 'refs/heads/master'`
+                  # TEMPORARY MASTER ARTIFACT TEST: remove `|| github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
                   # after the macOS Embedded MPV artifacts are built and manually tested.
-                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master') && '1' || '0' }}
+                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding') && '1' || '0' }}
               run: pnpm run make:app
 
             - name: Verify signed macOS app
-              if: matrix.os == 'macos' && github.event_name != 'pull_request'
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository == '4gray/iptvnator'
               shell: bash
               run: |
                   set -euo pipefail
@@ -523,29 +525,35 @@ jobs:
                   xcrun stapler validate "${APP_PATH}"
 
             - name: Make Electron app
-              if: matrix.os != 'macos' || github.event_name == 'pull_request'
+              if: matrix.os != 'macos' || github.event_name == 'pull_request' || github.repository != '4gray/iptvnator'
               env:
                   IPTVNATOR_EMBEDDED_MPV_PLATFORM: ${{ matrix.embedded_mpv_platform || '' }}
                   IPTVNATOR_EMBEDDED_MPV_ARCH: ${{ matrix.embedded_mpv_arch || matrix.arch || '' }}
                   # TEMPORARY PR TEST: change this back to '0' after manually
                   # testing the macOS PR artifact with Embedded MPV included.
-                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && github.event_name == 'pull_request')) && '1' || '0' }}
-              run: pnpm run make:app
+                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (github.event_name == 'pull_request' || github.repository != '4gray/iptvnator'))) && '1' || '0' }}
+                  CSC_IDENTITY_AUTO_DISCOVERY: ${{ matrix.os == 'macos' && github.repository != '4gray/iptvnator' && 'false' || '' }}
+              run: |
+                  if [ "${{ matrix.os }}" = "macos" ] && [ "${{ github.repository }}" != "4gray/iptvnator" ]; then
+                      pnpm run make:app -- -c.mac.forceCodeSigning=false -c.mac.notarize=false
+                  else
+                      pnpm run make:app
+                  fi
 
             - name: Verify packaged worker layout
               shell: bash
               env:
                   PACKAGE_OS: ${{ matrix.os }}
                   PACKAGE_ARCH: ${{ matrix.arch || matrix.embedded_mpv_arch || '' }}
-                  # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master'`
+                  # TEMPORARY ARTIFACT TEST: remove `|| github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
                   # after the macOS Embedded MPV artifacts are built and manually tested.
-                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master'))) && '1' || '0' }}
+                  IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'))) && '1' || '0' }}
               run: pnpm run verify:package-layout -- "$PACKAGE_OS" "$PACKAGE_ARCH"
 
             - name: Save embedded MPV runtime cache
-              # TEMPORARY ARTIFACT TEST: remove `|| github.ref == 'refs/heads/master'`
+              # TEMPORARY ARTIFACT TEST: remove `|| github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding'`
               # after the macOS Embedded MPV artifacts are built and manually tested.
-              if: matrix.embedded_mpv_platform && matrix.os != 'linux' && !startsWith(github.ref, 'refs/tags/v') && github.repository == '4gray/iptvnator' && github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
+              if: matrix.embedded_mpv_platform && matrix.os != 'linux' && !startsWith(github.ref, 'refs/tags/v') && github.repository == '4gray/iptvnator' && github.event_name != 'pull_request' && github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ruvo-branding' && steps.embedded-mpv-runtime-cache.outputs.cache-hit != 'true'
               uses: actions/cache/save@v4
               with:
                   path: |
@@ -625,7 +633,7 @@ jobs:
                   retention-days: 7
 
     create-release:
-        name: Create Draft Release
+        name: Create Release
         needs: build
         if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         runs-on: ubuntu-latest
@@ -648,10 +656,10 @@ jobs:
               id: package-version
               run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-            - name: Create Draft Release
+            - name: Create Release
               uses: softprops/action-gh-release@v2
               with:
-                  draft: true
+                  draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
                   prerelease: ${{ github.event_name == 'pull_request' }}
                   name: Release v${{ steps.package-version.outputs.version }}
                   tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('test-{0}', github.sha) }}

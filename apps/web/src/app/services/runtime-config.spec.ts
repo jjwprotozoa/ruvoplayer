@@ -1,10 +1,24 @@
 import {
     getRuntimeBackendUrls,
+    getRuntimeDesktopReleasesUrl,
+    getRuntimeGithubProjectUrl,
+    getRuntimeGithubRepo,
     resolveBackendUrl,
     shouldEnableServiceWorker,
 } from './runtime-config';
 
 describe('runtime config helpers', () => {
+    const windowRef = globalThis.window as Window & typeof globalThis;
+    let originalConfig = windowRef.__IPTVNATOR_CONFIG__;
+
+    afterEach(() => {
+        if (originalConfig === undefined) {
+            delete windowRef.__IPTVNATOR_CONFIG__;
+        } else {
+            windowRef.__IPTVNATOR_CONFIG__ = originalConfig;
+        }
+    });
+
     it('uses runtime BACKEND_URL when provided', () => {
         expect(
             resolveBackendUrl(
@@ -30,26 +44,34 @@ describe('runtime config helpers', () => {
     });
 
     it('collects primary and backup backend URLs without duplicates', () => {
-        const originalConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
-        globalThis.window = {
-            ...globalThis.window,
-            __IPTVNATOR_CONFIG__: {
-                BACKEND_URL: 'https://primary.example',
-                BACKEND_URL_BACKUP: 'https://backup.example',
-            },
-        } as Window & typeof globalThis;
+        windowRef.__IPTVNATOR_CONFIG__ = {
+            BACKEND_URL: 'https://primary.example',
+            BACKEND_URL_BACKUP: 'https://backup.example',
+        };
 
         expect(getRuntimeBackendUrls()).toEqual([
             'https://primary.example',
             'https://backup.example',
         ]);
-
-        globalThis.window = {
-            ...globalThis.window,
-            __IPTVNATOR_CONFIG__: originalConfig,
-        } as Window & typeof globalThis;
     });
 
+    it('resolves github repo and desktop release URLs from runtime config', () => {
+        windowRef.__IPTVNATOR_CONFIG__ = {
+            GITHUB_REPO: 'example/ruvoplayer',
+            DESKTOP_RELEASES_URL:
+                'https://example.com/ruvoplayer/releases/latest',
+        };
+
+        expect(getRuntimeGithubRepo()).toBe('example/ruvoplayer');
+        expect(getRuntimeGithubProjectUrl()).toBe(
+            'https://github.com/example/ruvoplayer'
+        );
+        expect(getRuntimeDesktopReleasesUrl()).toBe(
+            'https://example.com/ruvoplayer/releases/latest'
+        );
+    });
+
+    it('enables service worker in production when supported', () => {
         expect(
             shouldEnableServiceWorker(true, {
                 serviceWorker: {},

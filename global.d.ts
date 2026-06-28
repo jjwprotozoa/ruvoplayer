@@ -18,6 +18,8 @@ declare global {
         __IPTVNATOR_CONFIG__?: {
             BACKEND_URL?: string;
             BACKEND_URL_BACKUP?: string;
+            GITHUB_REPO?: string;
+            DESKTOP_RELEASES_URL?: string;
         };
         electron: ElectronBridgeApi;
         process: NodeJS.Process;

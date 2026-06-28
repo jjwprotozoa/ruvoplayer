@@ -395,7 +395,11 @@
         "DASHBOARD_RAIL_SOURCES_DESCRIPTION": "Show shortcuts to your most recently used playlists and portals.",
         "DASHBOARD_RAIL_XTREAM_ADDED": "Recently added on Xtream",
         "DASHBOARD_RAIL_XTREAM_ADDED_DESCRIPTION": "Show the newest Xtream movies, series, and channels.",
-        "PLAYLIST_EPG_SOURCES_AUTO_SELECTED": "{{enabled}} of {{detected}} detected playlist EPG sources were auto-selected for import."
+        "PLAYLIST_EPG_SOURCES_AUTO_SELECTED": "{{enabled}} of {{detected}} detected playlist EPG sources were auto-selected for import.",
+        "DESKTOP_APP_TITLE": "Desktop app",
+        "DESKTOP_APP_DESCRIPTION": "Get the full desktop experience with EPG, offline downloads, local file import, and external MPV/VLC playback.",
+        "DESKTOP_APP_DOWNLOAD": "Download for desktop",
+        "DESKTOP_APP_PLATFORMS": "macOS, Windows, and Linux"
     },
     "THEMES": {
         "DARK_THEME": "어둡게",
