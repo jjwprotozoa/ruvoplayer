@@ -1,6 +1,12 @@
 {
-  "buildCommand": "pnpm nx build web --configuration=production",
-  "outputDirectory": "dist/apps/web/browser",
+  "buildCommand": "pnpm nx build web --configuration=pwa",
+  "outputDirectory": "dist/apps/web",
   "installCommand": "pnpm install",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
