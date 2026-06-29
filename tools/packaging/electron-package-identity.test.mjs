@@ -99,6 +99,7 @@ const embeddedMpvWin32Source = fs.readFileSync(
 const { validatePackagedEmbeddedMpv } = require('./embedded-mpv-packaging.cjs');
 
 test('Linux package identity does not expose the internal Electron backend project name', () => {
+    assert.equal(electronBuilderConfig.appId, 'com.ruvoplayer.desktop');
     assert.equal(electronBuilderConfig.productName, 'RuvoPlayer');
     assert.equal(electronBuilderConfig.extraMetadata?.name, 'ruvoplayer');
     assert.equal(electronBuilderConfig.extraMetadata?.productName, 'RuvoPlayer');
@@ -368,6 +369,12 @@ test('Windows CI packages embedded MPV from a staged x64 runtime', () => {
         buildAndMakeWorkflow,
         /IPTVNATOR_DEFAULT_WINDOWS_EMBEDDED_MPV_RUNTIME_URL: https:\/\/github\.com\/zhongfly\/mpv-winbuild\/releases\/download\//
     );
+    assert.match(
+        buildAndMakeWorkflow,
+        /name:\s+Disable macOS code signing for fork builds/
+    );
+    assert.match(buildAndMakeWorkflow, /shell:\s+bash/);
+    assert.doesNotMatch(buildAndMakeWorkflow, /-c\.mac\.forceCodeSigning/);
     assert.match(buildAndMakeWorkflow, /refs\/tags\/v\*/);
     assert.match(
         buildAndMakeWorkflow,

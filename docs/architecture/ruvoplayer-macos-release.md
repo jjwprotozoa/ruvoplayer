@@ -95,4 +95,6 @@ Output: `dist/executables/RuvoPlayer-0.22.0-mac-arm64.dmg`
 
 ## PWA download link
 
-The PWA Settings → About card links to `https://github.com/jjwprotozoa/ruvoplayer/releases/latest`, configured via `DESKTOP_RELEASES_URL` in environment/runtime config.
+The PWA Settings → About card links to `https://github.com/jjwprotozoa/ruvoplayer/releases/latest`, configured via `DESKTOP_RELEASES_URL` in `apps/web/src/environments/environment.prod.ts`.
+
+Deploy the PWA from the `ruvo-branding` branch (`vercel.json` uses `pnpm nx build web --configuration=pwa`). After merging desktop-download changes, trigger a production redeploy on the Vercel project behind `ruvoplayer.vercel.app` so the live bundle includes `data-test-id="link-desktop-download"`.

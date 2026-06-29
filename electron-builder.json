@@ -1,6 +1,6 @@
 {
-    "appId": "com.fourgray.iptvnator",
-    "productName": "IPTVnator",
+    "appId": "com.ruvoplayer.desktop",
+    "productName": "RuvoPlayer",
     "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
     "directories": {
         "buildResources": "dist/apps",
@@ -28,8 +28,8 @@
         "**/embedded-mpv-runtime.json"
     ],
     "extraMetadata": {
-        "name": "iptvnator",
-        "productName": "IPTVnator",
+        "name": "ruvoplayer",
+        "productName": "RuvoPlayer",
         "main": "electron-backend/main.js"
     },
     "extraResources": ["dist/apps/electron-backend/workers"],
@@ -49,11 +49,11 @@
     },
     "linux": {
         "category": "Video",
-        "executableName": "iptvnator",
+        "executableName": "ruvoplayer",
         "executableArgs": ["--ozone-platform=x11"],
         "desktop": {
             "entry": {
-                "StartupWMClass": "iptvnator"
+                "StartupWMClass": "ruvoplayer"
             }
         },
         "target": [
@@ -115,7 +115,7 @@
         "base": "core22",
         "confinement": "strict",
         "grade": "stable",
-        "summary": "IPTV application for M3U playlists, Xtream Codes API, and Stalker portals",
+        "summary": "RuvoPlayer – IPTV application for M3U playlists, Xtream Codes API, and Stalker portals",
         "executableArgs": ["--ozone-platform=x11"],
         "environment": {
             "DISABLE_WAYLAND": "1"

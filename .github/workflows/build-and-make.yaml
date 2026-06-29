@@ -529,8 +529,20 @@ jobs:
                   spctl -a -vvv --type execute "${APP_PATH}"
                   xcrun stapler validate "${APP_PATH}"
 
+            - name: Disable macOS code signing for fork builds
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository != '4gray/iptvnator'
+              run: |
+                  node -e "
+                    const fs = require('fs');
+                    const pkg = JSON.parse(fs.readFileSync('electron-builder.json', 'utf8'));
+                    pkg.mac.forceCodeSigning = false;
+                    pkg.mac.notarize = false;
+                    fs.writeFileSync('electron-builder.json', JSON.stringify(pkg, null, 4) + '\n');
+                  "
+
             - name: Make Electron app
               if: matrix.os != 'macos' || github.event_name == 'pull_request' || github.repository != '4gray/iptvnator'
+              shell: bash
               env:
                   IPTVNATOR_EMBEDDED_MPV_PLATFORM: ${{ matrix.embedded_mpv_platform || '' }}
                   IPTVNATOR_EMBEDDED_MPV_ARCH: ${{ matrix.embedded_mpv_arch || matrix.arch || '' }}
@@ -538,12 +550,7 @@ jobs:
                   # testing the macOS PR artifact with Embedded MPV included.
                   IPTVNATOR_REQUIRE_EMBEDDED_MPV: ${{ (matrix.os == 'linux' || matrix.os == 'windows' || (matrix.os == 'macos' && (github.event_name == 'pull_request' || github.repository != '4gray/iptvnator'))) && '1' || '0' }}
                   CSC_IDENTITY_AUTO_DISCOVERY: ${{ matrix.os == 'macos' && github.repository != '4gray/iptvnator' && 'false' || '' }}
-              run: |
-                  if [ "${{ matrix.os }}" = "macos" ] && [ "${{ github.repository }}" != "4gray/iptvnator" ]; then
-                      pnpm run make:app -- -c.mac.forceCodeSigning=false -c.mac.notarize=false
-                  else
-                      pnpm run make:app
-                  fi
+              run: pnpm run make:app
 
             - name: Ad-hoc sign macOS app (RuvoPlayer fork)
               if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository != '4gray/iptvnator'
