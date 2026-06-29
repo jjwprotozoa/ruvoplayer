@@ -1,12 +1,12 @@
 {
-    "name": "iptvnator",
+    "name": "ruvoplayer",
     "version": "0.22.0",
     "license": "MIT",
-    "description": "IPTV player application.",
-    "homepage": "https://github.com/4gray/iptvnator",
+    "description": "RuvoPlayer – cross-platform IPTV player for live TV and streaming.",
+    "homepage": "https://github.com/jjwprotozoa/ruvoplayer",
     "author": {
-        "name": "4gray",
-        "email": "fourgray@proton.me"
+        "name": "jjwprotozoa",
+        "email": "jjwprotozoa@gmail.com"
     },
     "keywords": [
         "angular",
@@ -52,6 +52,7 @@
         "serve:backend:embedded-mpv": "pnpm embedded-mpv:build-native:homebrew && IPTVNATOR_EMBEDDED_MPV_ALLOW_HOMEBREW=1 IPTVNATOR_ENABLE_EMBEDDED_MPV_EXPERIMENT=1 pnpm serve:backend",
         "package:app": "nx run electron-backend:make --prepackageOnly",
         "make:app": "nx run electron-backend:make",
+        "sign:macos-adhoc": "node tools/packaging/adhoc-sign-macos-app.mjs",
         "smoke:packaged": "node tools/testing/launch-packaged-electron.mjs",
         "serve:website": "nx serve website",
         "build:website": "nx build website",

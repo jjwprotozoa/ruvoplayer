@@ -90,6 +90,8 @@ function isTruthy(value) {
     );
 }
 
+const macAppBundleName = `${electronBuilderConfig.productName}.app`;
+
 function getMacResourceDirs() {
     const candidates = packageOutputRoots.flatMap((outputRoot) => [
         {
@@ -97,7 +99,7 @@ function getMacResourceDirs() {
             directory: path.join(
                 outputRoot,
                 'mac',
-                'IPTVnator.app',
+                macAppBundleName,
                 'Contents',
                 'Resources'
             ),
@@ -107,7 +109,7 @@ function getMacResourceDirs() {
             directory: path.join(
                 outputRoot,
                 'mac-arm64',
-                'IPTVnator.app',
+                macAppBundleName,
                 'Contents',
                 'Resources'
             ),

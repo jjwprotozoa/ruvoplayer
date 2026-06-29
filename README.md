@@ -182,7 +182,24 @@ the host `mpv` executable to the embedded backend by default.
 
 ### macOS: "App is damaged and can't be opened"
 
-Older unsigned macOS builds may require removing the quarantine flag from the downloaded application:
+Unsigned macOS builds downloaded from the web are quarantined by Safari. macOS may show **"damaged"** even though the app is fine.
+
+**RuvoPlayer (jjwprotozoa/ruvoplayer releases):**
+
+```bash
+xattr -cr /Applications/RuvoPlayer.app
+open /Applications/RuvoPlayer.app
+```
+
+**IPTVnator upstream builds:**
+
+```bash
+xattr -cr /Applications/IPTVnator.app
+```
+
+Alternatively, right-click the app → **Open** once. See [docs/architecture/ruvoplayer-macos-release.md](./docs/architecture/ruvoplayer-macos-release.md) for Apple signing/notarization setup on the RuvoPlayer fork.
+
+Previously documented single-file form:
 
 ```bash
 xattr -c /Applications/IPTVnator.app
@@ -191,7 +208,7 @@ xattr -c /Applications/IPTVnator.app
 Alternatively, if the app is located in a different directory:
 
 ```bash
-xattr -c ~/Downloads/IPTVnator.app
+xattr -cr ~/Downloads/RuvoPlayer.app
 ```
 
 ### Linux: chrome-sandbox Issues

@@ -99,13 +99,13 @@ const embeddedMpvWin32Source = fs.readFileSync(
 const { validatePackagedEmbeddedMpv } = require('./embedded-mpv-packaging.cjs');
 
 test('Linux package identity does not expose the internal Electron backend project name', () => {
-    assert.equal(electronBuilderConfig.productName, 'IPTVnator');
-    assert.equal(electronBuilderConfig.extraMetadata?.name, 'iptvnator');
-    assert.equal(electronBuilderConfig.extraMetadata?.productName, 'IPTVnator');
-    assert.equal(electronBuilderConfig.linux?.executableName, 'iptvnator');
+    assert.equal(electronBuilderConfig.productName, 'RuvoPlayer');
+    assert.equal(electronBuilderConfig.extraMetadata?.name, 'ruvoplayer');
+    assert.equal(electronBuilderConfig.extraMetadata?.productName, 'RuvoPlayer');
+    assert.equal(electronBuilderConfig.linux?.executableName, 'ruvoplayer');
     assert.equal(
         electronBuilderConfig.linux?.desktop?.entry?.StartupWMClass,
-        'iptvnator'
+        'ruvoplayer'
     );
     assert.ok(
         electronBuilderConfig.linux?.executableArgs?.includes(

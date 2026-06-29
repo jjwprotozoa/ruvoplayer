@@ -488,10 +488,10 @@ jobs:
 
                   case "${{ matrix.arch }}" in
                       x64)
-                          APP_PATH="dist/executables/mac/IPTVnator.app"
+                          APP_PATH="dist/executables/mac/RuvoPlayer.app"
                           ;;
                       arm64)
-                          APP_PATH="dist/executables/mac-arm64/IPTVnator.app"
+                          APP_PATH="dist/executables/mac-arm64/RuvoPlayer.app"
                           ;;
                       *)
                           echo "::error::Unsupported macOS arch: ${{ matrix.arch }}"
@@ -544,6 +544,10 @@ jobs:
                   else
                       pnpm run make:app
                   fi
+
+            - name: Ad-hoc sign macOS app (RuvoPlayer fork)
+              if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository != '4gray/iptvnator'
+              run: node tools/packaging/adhoc-sign-macos-app.mjs dist/executables
 
             - name: Verify packaged worker layout
               shell: bash
