@@ -124,7 +124,7 @@ describe('AddPlaylistDialogComponent', () => {
             PlaylistActions.addPlaylist({
                 playlist: expect.objectContaining({
                     password: '0050256122',
-                    serverUrl: 'http://cf.ruvoplay.org',
+                    serverUrl: 'http://ruvoplay.org',
                     title: 'Ruvo Portal',
                     username: 'test1',
                 }),

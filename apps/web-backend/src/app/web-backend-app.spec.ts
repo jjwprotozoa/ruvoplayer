@@ -379,8 +379,8 @@ https://stream.example/news.m3u8`);
                 );
 
                 await expect(response.json()).resolves.toEqual({
-                    message: 'Bad Gateway',
-                    status: 502,
+                    message: 'connect ECONNREFUSED',
+                    status: 500,
                 });
             }
         );

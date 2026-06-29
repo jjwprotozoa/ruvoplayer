@@ -556,11 +556,7 @@ function normalizeProviderError(error: unknown): {
     readonly message: string;
     readonly status: number;
 } {
-    const providerError = error as ProviderError;
-    return {
-        message: providerError.response?.statusText ?? 'Bad Gateway',
-        status: providerError.response?.status ?? 502,
-    };
+    return extractPlaylistFetchError(error);
 }
 
 function createGuid(): string {

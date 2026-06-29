@@ -632,7 +632,11 @@ export class PwaService extends DataService {
             .then((response) => response.targetId)
             .catch((error) => {
                 this.providerTargetIds.delete(cacheKey);
-                throw error;
+                const message =
+                    error?.error?.message ??
+                    error?.message ??
+                    'Failed to register provider URL';
+                throw new Error(message);
             });
 
         this.providerTargetIds.set(cacheKey, targetIdRequest);

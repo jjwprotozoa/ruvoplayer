@@ -28,6 +28,27 @@ export interface XtreamPlaylistImportOptions {
 
 const XTREAM_API_ENDPOINT_PATTERN = /\/(?:get|player_api)\.php$/i;
 
+/**
+ * CDN / per-user panel hostnames that may not resolve from the public PWA proxy
+ * (e.g. Vercel). Xtream API credentials are account-scoped, so API calls can
+ * safely use the primary apex host instead.
+ */
+const XTREAM_PROXY_HOST_FALLBACK = 'ruvoplay.org';
+
+const XTREAM_PROXY_HOST_PATTERNS: readonly RegExp[] = [
+    /^cf\.ruvoplay\.org$/i,
+    /^pro\.ruvoplay\.org$/i,
+    /\.wd\.ruvoplay\.org$/i,
+    /\.matrix\.ruvoplay\.org$/i,
+];
+
+function applyXtreamProxyHostFallback(url: URL): void {
+    const hostname = url.hostname.toLowerCase();
+    if (XTREAM_PROXY_HOST_PATTERNS.some((pattern) => pattern.test(hostname))) {
+        url.hostname = XTREAM_PROXY_HOST_FALLBACK;
+    }
+}
+
 export function normalizeXtreamServerUrl(value: string): string {
     const trimmed = value.trim();
     if (!trimmed) {
@@ -42,6 +63,8 @@ export function normalizeXtreamServerUrl(value: string): string {
     if (url.username || url.password) {
         throw new Error('URL credentials are not supported');
     }
+
+    applyXtreamProxyHostFallback(url);
 
     const pathWithoutTrailingSlash = url.pathname.replace(/\/+$/, '');
     const basePath = pathWithoutTrailingSlash.replace(

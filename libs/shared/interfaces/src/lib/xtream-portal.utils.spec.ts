@@ -51,15 +51,57 @@ describe('xtream portal utilities', () => {
     });
 
     describe('resolveXtreamConnectionFromUrl', () => {
-        it('detects full get.php playlist URLs', () => {
+        it('detects full get.php playlist URLs and remaps panel CDN hostnames', () => {
             expect(
                 resolveXtreamConnectionFromUrl(
                     'http://cf.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts'
                 )
             ).toEqual({
-                serverUrl: 'http://cf.ruvoplay.org',
+                serverUrl: 'http://ruvoplay.org',
                 username: 'test1',
                 password: '0050256122',
+            });
+
+            expect(
+                resolveXtreamConnectionFromUrl(
+                    'http://eugene65096.wd.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts'
+                )
+            ).toEqual({
+                serverUrl: 'http://ruvoplay.org',
+                username: 'test1',
+                password: '0050256122',
+            });
+
+            expect(
+                resolveXtreamConnectionFromUrl(
+                    'http://pro.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts'
+                )
+            ).toEqual({
+                serverUrl: 'http://ruvoplay.org',
+                username: 'test1',
+                password: '0050256122',
+            });
+
+            expect(
+                resolveXtreamConnectionFromUrl(
+                    'http://super96794.matrix.ruvoplay.org/get.php?username=test1&password=0050256122&type=m3u_plus&output=ts'
+                )
+            ).toEqual({
+                serverUrl: 'http://ruvoplay.org',
+                username: 'test1',
+                password: '0050256122',
+            });
+        });
+
+        it('keeps backup apex host ruvoplay.cc unchanged', () => {
+            expect(
+                resolveXtreamConnectionFromUrl(
+                    'http://ruvoplay.cc/get.php?username=test1&password=secret&type=m3u_plus&output=ts'
+                )
+            ).toEqual({
+                serverUrl: 'http://ruvoplay.cc',
+                username: 'test1',
+                password: 'secret',
             });
         });
 
