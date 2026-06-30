@@ -15,6 +15,7 @@ import {
     PORTAL_PLAYBACK_POSITIONS,
     PORTAL_PLAYER,
     createLogger,
+    launchPortalPlayback,
 } from '@iptvnator/portal/shared/util';
 import {
     createPortalFavoritesResource,
@@ -371,13 +372,12 @@ export class StalkerCatalogDetailComponent implements OnDestroy {
             );
 
             this.lastInlineSaveTime = 0;
-            if (this.portalPlayer.isEmbeddedPlayer()) {
-                this.inlinePlayback.set(playback);
-                return;
-            }
-
-            this.closeInlinePlayer();
-            void this.portalPlayer.openResolvedPlayback(playback, true);
+            launchPortalPlayback(
+                this.portalPlayer,
+                playback,
+                (nextPlayback) => this.inlinePlayback.set(nextPlayback),
+                () => this.closeInlinePlayer()
+            );
         } catch (error) {
             this.logger.error('Failed to start inline VOD playback', error);
             const errorMessage =

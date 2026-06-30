@@ -7,6 +7,10 @@ import type { ExternalPlayerName } from '@iptvnator/shared/interfaces';
 
 export interface PortalPlayer {
     isEmbeddedPlayer(): boolean;
+    shouldOpenUnsupportedContainerExternally(
+        playback: ResolvedPortalPlayback
+    ): boolean;
+    resolveExternalFallbackPlayer(): ExternalPlayerName;
     openPlayer(
         streamUrl: string,
         title: string,

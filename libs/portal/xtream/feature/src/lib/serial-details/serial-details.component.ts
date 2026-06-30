@@ -23,6 +23,7 @@ import {
     PORTAL_PLAYBACK_POSITIONS,
     PORTAL_PLAYER,
     getSeriesQuickStartAction,
+    launchPortalPlayback,
 } from '@iptvnator/portal/shared/util';
 import { XtreamStore } from '@iptvnator/portal/xtream/data-access';
 import {
@@ -413,13 +414,12 @@ export class SerialDetailsComponent implements OnInit, OnDestroy {
 
     private startPlayback(playback: ResolvedPortalPlayback): void {
         this.lastSaveTime = 0;
-        if (this.portalPlayer.isEmbeddedPlayer()) {
-            this.inlinePlayback.set(playback);
-            return;
-        }
-
-        this.closeInlinePlayer();
-        void this.portalPlayer.openResolvedPlayback(playback, true);
+        launchPortalPlayback(
+            this.portalPlayer,
+            playback,
+            (nextPlayback) => this.inlinePlayback.set(nextPlayback),
+            () => this.closeInlinePlayer()
+        );
     }
 
     private getInlineEpisodeState(): SeriesPlaybackEpisodeState<XtreamSerieEpisode> | null {

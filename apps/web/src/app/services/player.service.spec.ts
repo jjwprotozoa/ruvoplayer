@@ -15,6 +15,10 @@ describe('PlayerService', () => {
     };
     const settingsStore = {
         player: jest.fn(() => VideoPlayer.VideoJs),
+        getSettings: jest.fn(() => ({
+            mpvPlayerPath: '/Applications/mpv',
+            vlcPlayerPath: '',
+        })),
     };
 
     beforeEach(() => {
@@ -41,6 +45,12 @@ describe('PlayerService', () => {
         dataService.sendIpcEvent.mockReset();
         settingsStore.player.mockReset();
         settingsStore.player.mockReturnValue(VideoPlayer.VideoJs);
+        settingsStore.getSettings.mockReset();
+        settingsStore.getSettings.mockReturnValue({
+            mpvPlayerPath: '/Applications/mpv',
+            vlcPlayerPath: '',
+        });
+        (globalThis as { electron?: unknown }).electron = undefined;
     });
 
     it('identifies embedded players', () => {
@@ -50,6 +60,30 @@ describe('PlayerService', () => {
         expect(service.isEmbeddedPlayer(VideoPlayer.EmbeddedMpv)).toBe(true);
         expect(service.isEmbeddedPlayer(VideoPlayer.MPV)).toBe(false);
         expect(service.isEmbeddedPlayer(VideoPlayer.VLC)).toBe(false);
+    });
+
+    it('routes mkv streams to external playback on desktop when inline players are selected', () => {
+        (globalThis as { electron?: object }).electron = {};
+
+        expect(
+            service.shouldOpenUnsupportedContainerExternally({
+                streamUrl: 'https://example.com/movie/123.mkv',
+                title: 'Example Movie',
+            })
+        ).toBe(true);
+        expect(service.resolveExternalFallbackPlayer()).toBe('mpv');
+    });
+
+    it('does not route mkv streams externally when embedded mpv is selected', () => {
+        (globalThis as { electron?: object }).electron = {};
+        settingsStore.player.mockReturnValue(VideoPlayer.EmbeddedMpv);
+
+        expect(
+            service.shouldOpenUnsupportedContainerExternally({
+                streamUrl: 'https://example.com/movie/123.mkv',
+                title: 'Example Movie',
+            })
+        ).toBe(false);
     });
 
     it('does not open a dialog or IPC for embedded players', async () => {

@@ -213,6 +213,19 @@ describe('WebPlayerViewComponent', () => {
         ]);
     });
 
+    it('maps mkv streams to matroska mime types for Video.js', () => {
+        const streamUrl = 'https://example.com/archive/movie.mkv';
+
+        component.setVjsOptions(streamUrl);
+
+        expect(component.vjsOptions.sources).toEqual([
+            {
+                src: streamUrl,
+                type: 'video/x-matroska',
+            },
+        ]);
+    });
+
     it('treats web script playback URLs without declared media extension as MPEG-TS', () => {
         const streamUrl = 'https://example.com/live.php?stream=123&token=x';
 

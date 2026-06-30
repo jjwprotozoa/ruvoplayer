@@ -1,10 +1,11 @@
 import type { WritableSignal } from '@angular/core';
 import type { MatSnackBar } from '@angular/material/snack-bar';
 import type { TranslateService } from '@ngx-translate/core';
-import type {
-    Logger,
-    PortalPlaybackPositions,
-    PortalPlayer,
+import {
+    launchPortalPlayback,
+    type Logger,
+    type PortalPlaybackPositions,
+    type PortalPlayer,
 } from '@iptvnator/portal/shared/util';
 import type { PlaybackFallbackRequest } from '@iptvnator/ui/playback';
 import {
@@ -36,13 +37,13 @@ export class StalkerVodPlaybackController {
             const playback = await resolvePlayback();
 
             this.lastInlineSaveTime = 0;
-            if (this.config.portalPlayer.isEmbeddedPlayer()) {
-                this.config.inlinePlayback.set(playback);
-                return;
-            }
-
-            this.closeInlinePlayer();
-            void this.config.portalPlayer.openResolvedPlayback(playback, true);
+            launchPortalPlayback(
+                this.config.portalPlayer,
+                playback,
+                (nextPlayback) =>
+                    this.config.inlinePlayback.set(nextPlayback),
+                () => this.closeInlinePlayer()
+            );
         } catch (error) {
             this.config.logger.error(
                 this.config.playbackErrorLogMessage,

@@ -29,6 +29,7 @@ import {
     PORTAL_PLAYER,
     createLogger,
     getStalkerReturnToState,
+    launchPortalPlayback,
 } from '@iptvnator/portal/shared/util';
 import {
     getVodSeriesSeasonKey,
@@ -573,13 +574,12 @@ export class StalkerSeriesViewComponent implements OnDestroy {
             );
 
             this.lastSaveTime = 0;
-            if (this.portalPlayer.isEmbeddedPlayer()) {
-                this.inlinePlayback.set(playback);
-                return;
-            }
-
-            this.closeInlinePlayer();
-            void this.portalPlayer.openResolvedPlayback(playback, true);
+            launchPortalPlayback(
+                this.portalPlayer,
+                playback,
+                (nextPlayback) => this.inlinePlayback.set(nextPlayback),
+                () => this.closeInlinePlayer()
+            );
         } catch (error) {
             this.logger.error('Failed to start inline series playback', error);
             const errorMessage =

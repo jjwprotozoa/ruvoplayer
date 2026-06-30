@@ -12,6 +12,7 @@ import {
 } from '@iptvnator/shared/interfaces';
 import type { ExternalPlayerName } from '@iptvnator/shared/interfaces';
 import { SettingsStore } from './settings-store.service';
+import { isBrowserInlineUnsupportedStreamUrl } from '@iptvnator/ui/playback/media-source';
 
 @Injectable({
     providedIn: 'root',
@@ -30,6 +31,37 @@ export class PlayerService {
             player === VideoPlayer.ArtPlayer ||
             player === VideoPlayer.EmbeddedMpv
         );
+    }
+
+    shouldOpenUnsupportedContainerExternally(
+        playback: ResolvedPortalPlayback
+    ): boolean {
+        const player = this.settingsStore.player() ?? VideoPlayer.VideoJs;
+
+        if (
+            player === VideoPlayer.MPV ||
+            player === VideoPlayer.VLC ||
+            player === VideoPlayer.EmbeddedMpv
+        ) {
+            return false;
+        }
+
+        if (typeof window === 'undefined' || !window.electron) {
+            return false;
+        }
+
+        return isBrowserInlineUnsupportedStreamUrl(playback.streamUrl);
+    }
+
+    resolveExternalFallbackPlayer(): ExternalPlayerName {
+        const settings = this.settingsStore.getSettings();
+        if (settings.mpvPlayerPath?.trim()) {
+            return 'mpv';
+        }
+        if (settings.vlcPlayerPath?.trim()) {
+            return 'vlc';
+        }
+        return 'mpv';
     }
 
     openPlayer(

@@ -6,6 +6,7 @@ export * from './lib/portal-catalog-detail';
 export * from './lib/portal-catalog-facade';
 export * from './lib/portal-external-playback';
 export * from './lib/portal-player';
+export * from './lib/portal-playback-launch.util';
 export * from './lib/portal-playback-positions';
 export * from './lib/series-quick-start';
 export * from './lib/portal-navigation-actions';

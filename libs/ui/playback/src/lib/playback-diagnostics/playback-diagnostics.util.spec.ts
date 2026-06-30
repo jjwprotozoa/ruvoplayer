@@ -6,6 +6,8 @@ import {
     createPlaybackSourceMetadata,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
+    isBrowserInlineUnsupportedStreamUrl,
+    resolvePlaybackMimeType,
 } from './playback-diagnostics.util';
 
 describe('playback diagnostics', () => {
@@ -464,5 +466,20 @@ describe('playback diagnostics', () => {
                 videoCodecs: ['avc1.64001f', 'hvc1.1.6.L93.B0'],
             })
         ).toEqual(['HEVC', 'AC-3', 'E-AC-3']);
+    });
+
+    it('maps mkv streams to matroska mime types and flags them as inline-unsupported', () => {
+        expect(
+            resolvePlaybackMimeType(
+                getPlaybackMediaExtensionFromUrl(
+                    'http://ruvoplay.org/movie/user/pass/1977622.mkv'
+                )
+            )
+        ).toBe('video/x-matroska');
+        expect(
+            isBrowserInlineUnsupportedStreamUrl(
+                'http://ruvoplay.org/movie/user/pass/1977622.mkv'
+            )
+        ).toBe(true);
     });
 });

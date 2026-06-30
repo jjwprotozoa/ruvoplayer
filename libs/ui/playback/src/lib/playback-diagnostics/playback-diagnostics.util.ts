@@ -31,6 +31,8 @@ export {
     createPlaybackSourceMetadata,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
+    isBrowserInlineUnsupportedStreamUrl,
+    resolvePlaybackMimeType,
 } from './playback-media-source.util';
 
 const SOURCE_NOT_SUPPORTED_CODE = 4;

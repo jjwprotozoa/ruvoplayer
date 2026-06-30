@@ -142,8 +142,54 @@ export function isLikelyContainerIssue(
     return (
         UNSUPPORTED_CONTAINER_NAMES.has(metadata.extension) ||
         UNSUPPORTED_CONTAINER_NAMES.has(metadata.container) ||
-        metadata.mimeType === 'video/matroska'
+        metadata.mimeType === 'video/matroska' ||
+        metadata.mimeType === 'video/x-matroska'
     );
+}
+
+export function isBrowserInlineUnsupportedContainerExtension(
+    extension: string
+): boolean {
+    return UNSUPPORTED_CONTAINER_EXTENSIONS.has(
+        extension.trim().toLowerCase()
+    );
+}
+
+export function isBrowserInlineUnsupportedStreamUrl(url: string): boolean {
+    const extension = getPlaybackMediaExtensionFromUrl(url);
+    return extension
+        ? isBrowserInlineUnsupportedContainerExtension(extension)
+        : false;
+}
+
+export function resolvePlaybackMimeType(extension: string): string {
+    switch (extension) {
+        case 'm3u':
+        case 'm3u8':
+            return 'application/x-mpegURL';
+        case 'ts':
+            return 'video/mp2t';
+        case 'mkv':
+            return 'video/x-matroska';
+        case 'webm':
+            return 'video/webm';
+        case 'mp4':
+        case 'm4v':
+            return 'video/mp4';
+        case 'mpd':
+            return 'application/dash+xml';
+        case 'mp3':
+            return 'audio/mpeg';
+        case 'oga':
+        case 'ogg':
+            return 'audio/ogg';
+        case 'ogv':
+            return 'video/ogg';
+        case '':
+            return 'video/mp2t';
+        default:
+            return 'video/mp4';
+    }
 }
 
 export function mergeCodecMetadata(

@@ -48,6 +48,9 @@
             "@iptvnator/ui/playback/embedded-mpv-player": [
                 "libs/ui/playback/src/lib/embedded-mpv-player/index.ts"
             ],
+            "@iptvnator/ui/playback/media-source": [
+                "libs/ui/playback/src/lib/playback-diagnostics/playback-media-source.util.ts"
+            ],
             "@iptvnator/ui/playback": ["libs/ui/playback/src/index.ts"],
             "@iptvnator/playlist/import/feature": [
                 "libs/playlist/import/feature/src/index.ts"

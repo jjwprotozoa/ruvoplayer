@@ -35,6 +35,7 @@ import {
     type PlaybackFallbackRequest,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
+    resolvePlaybackMimeType,
 } from '../playback-diagnostics/playback-diagnostics.util';
 import type { SeriesPlaybackNavigation } from '../portal-inline-player/series-playback-navigation';
 import { VjsPlayerComponent } from '../vjs-player/vjs-player.component';
@@ -152,12 +153,7 @@ export class WebPlayerViewComponent {
 
     setVjsOptions(streamUrl: string, isLive = true) {
         const extension = getPlaybackMediaExtensionFromUrl(streamUrl);
-        const mimeType =
-            extension === 'm3u' || extension === 'm3u8'
-                ? 'application/x-mpegURL'
-                : extension === 'ts' || !extension
-                  ? 'video/mp2t'
-                  : 'video/mp4';
+        const mimeType = resolvePlaybackMimeType(extension);
 
         this.vjsOptions = {
             isLive,
