@@ -119,6 +119,91 @@ describe('playback diagnostics', () => {
         expect(issue.externalFallbackRecommended).toBe(false);
     });
 
+    it('classifies HLS manifest 404 responses as stream-not-found diagnostics', () => {
+        const issue = classifyHlsPlaybackIssue(
+            {
+                type: 'networkError',
+                details: 'manifestLoadError',
+                fatal: true,
+                error: {
+                    code: 404,
+                    text: 'Not Found',
+                    url: 'https://cdn.example/live/index.m3u8',
+                },
+            },
+            createPlaybackSourceMetadata({
+                url: 'https://cdn.example/live/index.m3u8',
+                player: 'videojs',
+            })
+        );
+
+        expect(issue.code).toBe(PlaybackDiagnosticCode.StreamNotFound);
+        expect(issue.httpStatus).toBe(404);
+        expect(issue.externalFallbackRecommended).toBe(false);
+    });
+
+    it('classifies HLS manifest 403 responses as access-denied diagnostics', () => {
+        const issue = classifyHlsPlaybackIssue(
+            {
+                type: 'networkError',
+                details: 'manifestLoadError',
+                fatal: true,
+                error: {
+                    code: 403,
+                    text: 'Forbidden',
+                },
+            },
+            createPlaybackSourceMetadata({
+                url: 'https://cdn.example/live/index.m3u8',
+                player: 'videojs',
+            })
+        );
+
+        expect(issue.code).toBe(PlaybackDiagnosticCode.AccessDenied);
+        expect(issue.httpStatus).toBe(403);
+        expect(issue.externalFallbackRecommended).toBe(false);
+    });
+
+    it('classifies HLS manifest 503 responses as stream-unavailable diagnostics', () => {
+        const issue = classifyHlsPlaybackIssue(
+            {
+                type: 'networkError',
+                details: 'manifestLoadError',
+                fatal: true,
+                error: {
+                    code: 503,
+                    text: 'Service Unavailable',
+                },
+            },
+            createPlaybackSourceMetadata({
+                url: 'https://cdn.example/live/index.m3u8',
+                player: 'videojs',
+            })
+        );
+
+        expect(issue.code).toBe(PlaybackDiagnosticCode.StreamUnavailable);
+        expect(issue.httpStatus).toBe(503);
+        expect(issue.externalFallbackRecommended).toBe(false);
+    });
+
+    it('classifies timeout network failures as stream-unavailable diagnostics', () => {
+        const issue = classifyHlsPlaybackIssue(
+            {
+                type: 'networkError',
+                details: 'manifestLoadTimeOut',
+                fatal: true,
+                error: new Error('loading timed out'),
+            },
+            createPlaybackSourceMetadata({
+                url: 'https://cdn.example/live/index.m3u8',
+                player: 'videojs',
+            })
+        );
+
+        expect(issue.code).toBe(PlaybackDiagnosticCode.StreamUnavailable);
+        expect(issue.externalFallbackRecommended).toBe(false);
+    });
+
     it('does not treat provider-side blocked messages as browser access errors', () => {
         const issue = classifyHlsPlaybackIssue(
             {

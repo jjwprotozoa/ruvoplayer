@@ -297,6 +297,10 @@ export class WebPlayerViewComponent {
                 value: issue.audioCodecs.join(', '),
             },
             {
+                labelKey: 'PLAYBACK_DIAGNOSTICS.DETAIL_HTTP_STATUS',
+                value: issue.httpStatus?.toString() ?? '',
+            },
+            {
                 labelKey: 'PLAYBACK_DIAGNOSTICS.DETAIL_NATIVE_ERROR_CODE',
                 value: issue.nativeErrorCode?.toString() ?? '',
             },
@@ -321,6 +325,12 @@ export class WebPlayerViewComponent {
                 return 'PLAYBACK_DIAGNOSTICS.MEDIA_DECODE_ERROR';
             case PlaybackDiagnosticCode.NetworkError:
                 return 'PLAYBACK_DIAGNOSTICS.NETWORK_ERROR';
+            case PlaybackDiagnosticCode.StreamNotFound:
+                return 'PLAYBACK_DIAGNOSTICS.STREAM_NOT_FOUND';
+            case PlaybackDiagnosticCode.AccessDenied:
+                return 'PLAYBACK_DIAGNOSTICS.ACCESS_DENIED';
+            case PlaybackDiagnosticCode.StreamUnavailable:
+                return 'PLAYBACK_DIAGNOSTICS.STREAM_UNAVAILABLE';
             case PlaybackDiagnosticCode.BrowserAccessError:
                 return 'PLAYBACK_DIAGNOSTICS.BROWSER_ACCESS_ERROR';
             case PlaybackDiagnosticCode.DrmOrEncryption:

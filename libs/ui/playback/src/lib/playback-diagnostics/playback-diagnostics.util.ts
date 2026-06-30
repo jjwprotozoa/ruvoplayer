@@ -10,11 +10,15 @@ import type {
 import { PlaybackDiagnosticCode as DiagnosticCode } from './playback-diagnostics.model';
 import { PlaybackDiagnosticSource as DiagnosticSource } from './playback-diagnostics.model';
 import {
+    isAccessDeniedStatus,
     isBrowserAccessFailure,
     isCodecFailure,
     isDrmOrEncryptionFailure,
     isEarlyEofFailure,
     isNetworkFailure,
+    isStreamNotFoundStatus,
+    isStreamUnavailableStatus,
+    extractHttpStatus,
     normalizeErrorDetails,
 } from './playback-error-patterns.util';
 import {
@@ -45,10 +49,9 @@ export function classifyNativePlaybackIssue(
         // Native MediaError details are often opaque for browser security
         // failures. Only classify browser access when the runtime exposes a
         // concrete CORS/mixed-content/CSP-style message.
-        return createDiagnostic({
-            code: isBrowserAccessFailure(lowerNativeErrorMessage)
-                ? DiagnosticCode.BrowserAccessError
-                : DiagnosticCode.NetworkError,
+        return classifyNetworkDiagnostic({
+            details: lowerNativeErrorMessage,
+            lowerDetails: lowerNativeErrorMessage,
             source: DiagnosticSource.Native,
             metadata,
             nativeErrorCode,
@@ -100,13 +103,12 @@ export function classifyHlsPlaybackIssue(
     });
 
     if (isNetworkFailure(lowerType, lowerDetails)) {
-        return createDiagnostic({
-            code: isBrowserAccessFailure(lowerDetails)
-                ? DiagnosticCode.BrowserAccessError
-                : DiagnosticCode.NetworkError,
+        return classifyNetworkDiagnostic({
+            details,
+            error: error.error,
+            lowerDetails,
             source: DiagnosticSource.Hls,
             metadata: mergedMetadata,
-            details,
         });
     }
 
@@ -163,13 +165,12 @@ export function classifyMpegTsPlaybackIssue(
     }
 
     if (isNetworkFailure(lowerType, lowerDetails)) {
-        return createDiagnostic({
-            code: isBrowserAccessFailure(lowerDetails)
-                ? DiagnosticCode.BrowserAccessError
-                : DiagnosticCode.NetworkError,
+        return classifyNetworkDiagnostic({
+            details,
+            error: error.info,
+            lowerDetails,
             source: DiagnosticSource.MpegTs,
             metadata,
-            details,
         });
     }
 
@@ -235,6 +236,7 @@ function createDiagnostic(options: {
     readonly source: PlaybackDiagnosticSource;
     readonly metadata: PlaybackSourceMetadata;
     readonly details?: string;
+    readonly httpStatus?: number;
     readonly nativeErrorCode?: number;
     readonly nativeErrorMessage?: string;
 }): PlaybackDiagnostic {
@@ -243,6 +245,7 @@ function createDiagnostic(options: {
         source,
         metadata,
         details,
+        httpStatus,
         nativeErrorCode,
         nativeErrorMessage,
     } = options;
@@ -257,10 +260,90 @@ function createDiagnostic(options: {
         audioCodecs: metadata.audioCodecs,
         videoCodecs: metadata.videoCodecs,
         details: details || undefined,
+        httpStatus,
         nativeErrorCode,
         nativeErrorMessage,
         externalFallbackRecommended: isExternalFallbackRecommended(code),
     };
+}
+
+function classifyNetworkDiagnostic(options: {
+    readonly details: string;
+    readonly error?: unknown;
+    readonly lowerDetails: string;
+    readonly source: PlaybackDiagnosticSource;
+    readonly metadata: PlaybackSourceMetadata;
+    readonly nativeErrorCode?: number;
+    readonly nativeErrorMessage?: string;
+}): PlaybackDiagnostic {
+    const {
+        details,
+        error,
+        lowerDetails,
+        source,
+        metadata,
+        nativeErrorCode,
+        nativeErrorMessage,
+    } = options;
+    const httpStatus = extractHttpStatus(details, error);
+
+    if (isStreamNotFoundStatus(httpStatus, lowerDetails)) {
+        return createDiagnostic({
+            code: DiagnosticCode.StreamNotFound,
+            source,
+            metadata,
+            details,
+            httpStatus,
+            nativeErrorCode,
+            nativeErrorMessage,
+        });
+    }
+
+    if (isAccessDeniedStatus(httpStatus, lowerDetails)) {
+        return createDiagnostic({
+            code: DiagnosticCode.AccessDenied,
+            source,
+            metadata,
+            details,
+            httpStatus,
+            nativeErrorCode,
+            nativeErrorMessage,
+        });
+    }
+
+    if (isStreamUnavailableStatus(httpStatus, lowerDetails)) {
+        return createDiagnostic({
+            code: DiagnosticCode.StreamUnavailable,
+            source,
+            metadata,
+            details,
+            httpStatus,
+            nativeErrorCode,
+            nativeErrorMessage,
+        });
+    }
+
+    if (isBrowserAccessFailure(lowerDetails)) {
+        return createDiagnostic({
+            code: DiagnosticCode.BrowserAccessError,
+            source,
+            metadata,
+            details,
+            httpStatus,
+            nativeErrorCode,
+            nativeErrorMessage,
+        });
+    }
+
+    return createDiagnostic({
+        code: DiagnosticCode.NetworkError,
+        source,
+        metadata,
+        details,
+        httpStatus,
+        nativeErrorCode,
+        nativeErrorMessage,
+    });
 }
 
 function isExternalFallbackRecommended(code: PlaybackDiagnosticCode): boolean {

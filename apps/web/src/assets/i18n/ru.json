@@ -432,6 +432,18 @@
             "TITLE": "Не удалось загрузить поток",
             "DESCRIPTION": "Плеер сообщил сетевую ошибку или ошибку загрузки у провайдера. Проверьте URL потока, заголовки или доступность провайдера."
         },
+        "STREAM_NOT_FOUND": {
+            "TITLE": "This stream URL was not found",
+            "DESCRIPTION": "The server returned not found (404). The URL may be incorrect, expired, or the stream may have been removed. Refresh the playlist or contact your provider."
+        },
+        "ACCESS_DENIED": {
+            "TITLE": "Access to this stream was denied",
+            "DESCRIPTION": "The server rejected the request. Signed URLs, access tokens, or provider credentials may have expired. Refresh the playlist or check playlist settings."
+        },
+        "STREAM_UNAVAILABLE": {
+            "TITLE": "The stream server is temporarily unavailable",
+            "DESCRIPTION": "The provider returned a server error or the connection timed out. This is usually temporary — try again in a few moments or check whether the provider is down."
+        },
         "BROWSER_ACCESS_ERROR": {
             "TITLE": "Браузерный плеер не получил доступ к потоку",
             "DESCRIPTION": "Запрос может быть заблокирован CORS, mixed content или требованиями провайдера/прокси к заголовкам. MPV или VLC часто обходят такие ограничения браузерного плеера.",
@@ -460,6 +472,7 @@
         "DETAIL_SOURCE": "Источник",
         "DETAIL_CONTAINER": "Контейнер",
         "DETAIL_MIME_TYPE": "MIME-тип",
+        "DETAIL_HTTP_STATUS": "HTTP status",
         "DETAIL_VIDEO_CODECS": "Видео кодеки",
         "DETAIL_AUDIO_CODECS": "Аудио кодеки",
         "DETAIL_NATIVE_ERROR_CODE": "Код ошибки браузера",

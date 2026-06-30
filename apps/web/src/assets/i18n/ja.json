@@ -432,6 +432,18 @@
             "TITLE": "The stream could not be loaded",
             "DESCRIPTION": "The player reported a network or provider loading error. Check the stream URL, headers, or provider availability."
         },
+        "STREAM_NOT_FOUND": {
+            "TITLE": "This stream URL was not found",
+            "DESCRIPTION": "The server returned not found (404). The URL may be incorrect, expired, or the stream may have been removed. Refresh the playlist or contact your provider."
+        },
+        "ACCESS_DENIED": {
+            "TITLE": "Access to this stream was denied",
+            "DESCRIPTION": "The server rejected the request. Signed URLs, access tokens, or provider credentials may have expired. Refresh the playlist or check playlist settings."
+        },
+        "STREAM_UNAVAILABLE": {
+            "TITLE": "The stream server is temporarily unavailable",
+            "DESCRIPTION": "The provider returned a server error or the connection timed out. This is usually temporary — try again in a few moments or check whether the provider is down."
+        },
         "BROWSER_ACCESS_ERROR": {
             "TITLE": "The browser player could not access this stream",
             "DESCRIPTION": "The request may be blocked by CORS, mixed content, or provider header/proxy restrictions. MPV or VLC can often bypass browser-player access limits.",
@@ -460,6 +472,7 @@
         "DETAIL_SOURCE": "Source",
         "DETAIL_CONTAINER": "Container",
         "DETAIL_MIME_TYPE": "MIME type",
+        "DETAIL_HTTP_STATUS": "HTTP status",
         "DETAIL_VIDEO_CODECS": "Video codecs",
         "DETAIL_AUDIO_CODECS": "Audio codecs",
         "DETAIL_NATIVE_ERROR_CODE": "Native error code",

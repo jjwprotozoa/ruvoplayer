@@ -26,6 +26,119 @@ export function isNetworkFailure(type: string, details: string): boolean {
     );
 }
 
+export function extractHttpStatus(
+    details: string,
+    error?: unknown
+): number | undefined {
+    const fromPayload = extractHttpStatusFromPayload(error);
+    if (fromPayload !== undefined) {
+        return fromPayload;
+    }
+
+    return extractHttpStatusFromText(details);
+}
+
+export function isStreamNotFoundStatus(
+    httpStatus: number | undefined,
+    details: string
+): boolean {
+    if (httpStatus === 404 || httpStatus === 410) {
+        return true;
+    }
+
+    const lowerDetails = details.toLowerCase();
+    return (
+        /\b404\b/.test(lowerDetails) ||
+        lowerDetails.includes('not found') ||
+        lowerDetails.includes('gone')
+    );
+}
+
+export function isAccessDeniedStatus(
+    httpStatus: number | undefined,
+    details: string
+): boolean {
+    if (httpStatus === 401 || httpStatus === 403) {
+        return true;
+    }
+
+    const lowerDetails = details.toLowerCase();
+    return (
+        /\b401\b/.test(lowerDetails) ||
+        /\b403\b/.test(lowerDetails) ||
+        lowerDetails.includes('forbidden') ||
+        lowerDetails.includes('unauthorized')
+    );
+}
+
+export function isStreamUnavailableStatus(
+    httpStatus: number | undefined,
+    details: string
+): boolean {
+    if (
+        httpStatus !== undefined &&
+        httpStatus >= 500 &&
+        httpStatus < 600
+    ) {
+        return true;
+    }
+
+    const lowerDetails = details.toLowerCase();
+    return (
+        lowerDetails.includes('timeout') ||
+        lowerDetails.includes('timed out') ||
+        lowerDetails.includes('etimedout') ||
+        lowerDetails.includes('gateway timeout') ||
+        lowerDetails.includes('service unavailable') ||
+        lowerDetails.includes('bad gateway') ||
+        lowerDetails.includes('internal server error') ||
+        /\b500\b/.test(lowerDetails) ||
+        /\b502\b/.test(lowerDetails) ||
+        /\b503\b/.test(lowerDetails) ||
+        /\b504\b/.test(lowerDetails)
+    );
+}
+
+function extractHttpStatusFromPayload(payload: unknown): number | undefined {
+    if (!payload || typeof payload !== 'object') {
+        return undefined;
+    }
+
+    const record = payload as Record<string, unknown>;
+    const directStatus = readHttpStatusCode(record.code ?? record.status);
+    if (directStatus !== undefined) {
+        return directStatus;
+    }
+
+    if (record.response && typeof record.response === 'object') {
+        return extractHttpStatusFromPayload(record.response);
+    }
+
+    return undefined;
+}
+
+function extractHttpStatusFromText(text: string): number | undefined {
+    const statusFieldMatch = text.match(/"(?:status|code)"\s*:\s*(\d{3})/i);
+    if (statusFieldMatch) {
+        return readHttpStatusCode(Number(statusFieldMatch[1]));
+    }
+
+    const httpStatusMatch = text.match(/\bHTTP\s+(\d{3})\b/i);
+    if (httpStatusMatch) {
+        return readHttpStatusCode(Number(httpStatusMatch[1]));
+    }
+
+    return undefined;
+}
+
+function readHttpStatusCode(value: unknown): number | undefined {
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+        return undefined;
+    }
+
+    return value >= 100 && value < 600 ? value : undefined;
+}
+
 export function isBrowserAccessFailure(details: string): boolean {
     return (
         details.includes('cors') ||

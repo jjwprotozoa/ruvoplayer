@@ -575,6 +575,48 @@ describe('WebPlayerViewComponent', () => {
         );
     });
 
+    it('shows stream-not-found messaging without external player fallback actions', () => {
+        fixture.detectChanges();
+        component.handlePlaybackIssue(createStreamNotFoundDiagnostic());
+        fixture.detectChanges();
+
+        const banner = fixture.debugElement.query(
+            By.css('[data-test-id="playback-diagnostic-banner"]')
+        );
+        const mpvButton = fixture.debugElement.query(
+            By.css('[data-test-id="playback-fallback-mpv"]')
+        );
+
+        expect(mpvButton).toBeNull();
+        expect(banner.nativeElement.textContent).toContain(
+            'PLAYBACK_DIAGNOSTICS.STREAM_NOT_FOUND.TITLE'
+        );
+        expect(banner.nativeElement.textContent).toContain(
+            'PLAYBACK_DIAGNOSTICS.INLINE_FAILURE_TITLE'
+        );
+    });
+
+    it('shows stream-unavailable messaging without external player fallback actions', () => {
+        fixture.detectChanges();
+        component.handlePlaybackIssue(createStreamUnavailableDiagnostic());
+        fixture.detectChanges();
+
+        const banner = fixture.debugElement.query(
+            By.css('[data-test-id="playback-diagnostic-banner"]')
+        );
+        const mpvButton = fixture.debugElement.query(
+            By.css('[data-test-id="playback-fallback-mpv"]')
+        );
+
+        expect(mpvButton).toBeNull();
+        expect(banner.nativeElement.textContent).toContain(
+            'PLAYBACK_DIAGNOSTICS.STREAM_UNAVAILABLE.TITLE'
+        );
+        expect(banner.nativeElement.textContent).toContain(
+            'PLAYBACK_DIAGNOSTICS.INLINE_FAILURE_TITLE'
+        );
+    });
+
     it('renders technical details and codec-specific hints in the diagnostic banner', () => {
         fixture.detectChanges();
         const issue = createUnsupportedCodecDiagnostic();
@@ -711,6 +753,38 @@ function createNetworkDiagnostic(): PlaybackDiagnostic {
         audioCodecs: [],
         videoCodecs: [],
         details: 'HttpStatusCodeInvalid {"code":456,"msg":"<none>"}',
+        externalFallbackRecommended: false,
+    };
+}
+
+function createStreamNotFoundDiagnostic(): PlaybackDiagnostic {
+    return {
+        code: PlaybackDiagnosticCode.StreamNotFound,
+        source: PlaybackDiagnosticSource.Hls,
+        sourceUrl: 'https://cdn.example/live/index.m3u8',
+        container: 'm3u8',
+        mimeType: 'application/x-mpegURL',
+        player: 'videojs',
+        audioCodecs: [],
+        videoCodecs: [],
+        httpStatus: 404,
+        details: 'manifestLoadError {"code":404,"text":"Not Found"}',
+        externalFallbackRecommended: false,
+    };
+}
+
+function createStreamUnavailableDiagnostic(): PlaybackDiagnostic {
+    return {
+        code: PlaybackDiagnosticCode.StreamUnavailable,
+        source: PlaybackDiagnosticSource.Hls,
+        sourceUrl: 'https://cdn.example/live/index.m3u8',
+        container: 'm3u8',
+        mimeType: 'application/x-mpegURL',
+        player: 'videojs',
+        audioCodecs: [],
+        videoCodecs: [],
+        httpStatus: 503,
+        details: 'manifestLoadError {"code":503,"text":"Service Unavailable"}',
         externalFallbackRecommended: false,
     };
 }

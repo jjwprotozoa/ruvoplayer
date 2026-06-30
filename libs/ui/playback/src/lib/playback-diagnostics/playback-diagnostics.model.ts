@@ -8,6 +8,9 @@ export const PlaybackDiagnosticCode = {
     UnsupportedCodec: 'unsupported-codec',
     MediaDecodeError: 'media-decode-error',
     NetworkError: 'network-error',
+    StreamNotFound: 'stream-not-found',
+    AccessDenied: 'access-denied',
+    StreamUnavailable: 'stream-unavailable',
     BrowserAccessError: 'browser-access-error',
     DrmOrEncryption: 'drm-or-encryption',
     UnknownPlaybackError: 'unknown-playback-error',
@@ -85,6 +88,7 @@ export interface PlaybackDiagnostic {
     readonly audioCodecs: readonly string[];
     readonly videoCodecs: readonly string[];
     readonly details?: string;
+    readonly httpStatus?: number;
     readonly nativeErrorCode?: number;
     readonly nativeErrorMessage?: string;
     readonly externalFallbackRecommended: boolean;
