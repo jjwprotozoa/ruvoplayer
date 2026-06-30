@@ -4,6 +4,7 @@ import {
     DestroyRef,
     ViewEncapsulation,
     computed,
+    effect,
     inject,
     input,
     signal,
@@ -21,6 +22,7 @@ import {
     GitHubReleaseAsset,
     buildGitHubLatestReleaseApiUrl,
     buildMobileWebAppDownload,
+    buildStaticDesktopDownloadCards,
     mergeCommonDesktopReleaseAssets,
     pickCommonDesktopReleaseAssets,
 } from './desktop-release-assets.util';
@@ -54,14 +56,25 @@ export class SettingsAboutSectionComponent {
     readonly mobileWebAppDownload = computed(() =>
         buildMobileWebAppDownload(this.resolveMobileWebAppUrl())
     );
-    readonly visibleDesktopDownloads = computed(() => [
-        ...this.desktopDownloads(),
-        this.mobileWebAppDownload(),
-    ]);
+    readonly visibleDesktopDownloads = computed(() => {
+        const loaded = this.desktopDownloads();
+        const cards =
+            loaded.length > 0
+                ? loaded
+                : buildStaticDesktopDownloadCards(this.desktopReleasesUrl());
+
+        return [...cards, this.mobileWebAppDownload()];
+    });
 
     private desktopDownloadsRequested = false;
 
     constructor() {
+        effect(() => {
+            if (this.isPwa()) {
+                this.ensureDesktopDownloadsLoaded();
+            }
+        });
+
         this.destroyRef.onDestroy(() => {
             this.desktopDownloadsRequested = false;
         });

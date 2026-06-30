@@ -48,7 +48,6 @@ describe('SettingsAboutSectionComponent', () => {
             size: number;
         }> = []
     ): void {
-        fixture.componentInstance.ensureDesktopDownloadsLoaded();
         const primaryRequest = httpMock.expectOne(
             'https://api.github.com/repos/jjwprotozoa/ruvoplayer/releases/latest'
         );
@@ -64,10 +63,31 @@ describe('SettingsAboutSectionComponent', () => {
         fixture.detectChanges();
     }
 
-    it('shows common desktop downloads plus the mobile web app card in PWA mode', () => {
+    it('shows static desktop download cards immediately in PWA mode', () => {
         fixture.componentRef.setInput('isPwa', true);
         fixture.componentRef.setInput('isDesktop', false);
         fixture.detectChanges();
+
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-mac-static"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-windows-static"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-linux-static"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-mobile-web"]'
+            )
+        ).toBeTruthy();
 
         flushReleaseAssets(
             [
@@ -94,25 +114,19 @@ describe('SettingsAboutSectionComponent', () => {
         const windowsLink = fixture.nativeElement.querySelector(
             '[data-test-id="link-desktop-download-windows"]'
         ) as HTMLAnchorElement | null;
-        const mobileLink = fixture.nativeElement.querySelector(
-            '[data-test-id="link-desktop-download-mobile-web"]'
-        ) as HTMLAnchorElement | null;
 
         expect(macLink).toBeTruthy();
         expect(macLink?.textContent).toContain('macOS (Apple Silicon)');
         expect(windowsLink).toBeTruthy();
         expect(windowsLink?.textContent).toContain('Windows');
         expect(windowsLink?.textContent).toContain('IPTVnator upstream');
-        expect(mobileLink).toBeTruthy();
-        expect(mobileLink?.textContent).toContain('Android / mobile');
     });
 
-    it('falls back to the generic desktop download card when release assets are unavailable', () => {
+    it('keeps static desktop cards when release assets are unavailable', () => {
         fixture.componentRef.setInput('isPwa', true);
         fixture.componentRef.setInput('isDesktop', false);
         fixture.detectChanges();
 
-        fixture.componentInstance.ensureDesktopDownloadsLoaded();
         const primaryRequest = httpMock.expectOne(
             'https://api.github.com/repos/jjwprotozoa/ruvoplayer/releases/latest'
         );
@@ -125,14 +139,14 @@ describe('SettingsAboutSectionComponent', () => {
 
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download-mobile-web"]'
+                '[data-test-id="link-desktop-download-windows-static"]'
             )
         ).toBeTruthy();
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download"]'
+                '[data-test-id="link-desktop-download-mobile-web"]'
             )
-        ).toBeNull();
+        ).toBeTruthy();
     });
 
     it('hides the desktop download card in Electron mode', () => {
@@ -142,12 +156,12 @@ describe('SettingsAboutSectionComponent', () => {
 
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download"]'
+                '[data-test-id="link-desktop-download-mac-static"]'
             )
         ).toBeNull();
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download-mac-arm64"]'
+                '[data-test-id="link-desktop-download-mobile-web"]'
             )
         ).toBeNull();
     });

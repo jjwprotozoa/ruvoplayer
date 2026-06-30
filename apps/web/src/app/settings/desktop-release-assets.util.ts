@@ -293,6 +293,43 @@ export function mergeCommonDesktopReleaseAssets(
     );
 }
 
+export function buildStaticDesktopDownloadCards(
+    releasesUrl: string
+): DesktopReleaseAssetView[] {
+    return [
+        {
+            label: 'macOS',
+            sublabel: 'Apple Silicon and Intel builds',
+            href: releasesUrl,
+            platformKey: 'macos',
+            icon: 'laptop_mac',
+            sortOrder: PLATFORM_SORT_ORDER.macos,
+            slotKey: 'mac-static',
+            fileName: '',
+        },
+        {
+            label: 'Windows',
+            sublabel: '64-bit installer',
+            href: releasesUrl,
+            platformKey: 'windows',
+            icon: 'desktop_windows',
+            sortOrder: PLATFORM_SORT_ORDER.windows,
+            slotKey: 'windows-static',
+            fileName: '',
+        },
+        {
+            label: 'Linux',
+            sublabel: 'AppImage, DEB, and other packages',
+            href: releasesUrl,
+            platformKey: 'linux',
+            icon: 'computer',
+            sortOrder: PLATFORM_SORT_ORDER.linux,
+            slotKey: 'linux-static',
+            fileName: '',
+        },
+    ];
+}
+
 export function buildGitHubLatestReleaseApiUrl(githubRepo: string): string {
     const normalizedRepo = githubRepo.trim().replace(/^\/+|\/+$/g, '');
     return `https://api.github.com/repos/${normalizedRepo}/releases/latest`;

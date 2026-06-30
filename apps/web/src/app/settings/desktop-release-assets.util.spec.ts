@@ -1,5 +1,6 @@
 import {
     buildGitHubLatestReleaseApiUrl,
+    buildStaticDesktopDownloadCards,
     describeDesktopReleaseAsset,
     mergeCommonDesktopReleaseAssets,
     pickCommonDesktopReleaseAssets,
@@ -9,6 +10,21 @@ describe('desktop-release-assets.util', () => {
     it('builds the GitHub latest release API URL from the configured repo slug', () => {
         expect(buildGitHubLatestReleaseApiUrl('jjwprotozoa/ruvoplayer')).toBe(
             'https://api.github.com/repos/jjwprotozoa/ruvoplayer/releases/latest'
+        );
+    });
+
+    it('builds static desktop cards that link to the releases page', () => {
+        const cards = buildStaticDesktopDownloadCards(
+            'https://github.com/jjwprotozoa/ruvoplayer/releases/latest'
+        );
+
+        expect(cards.map((card) => card.slotKey)).toEqual([
+            'mac-static',
+            'windows-static',
+            'linux-static',
+        ]);
+        expect(cards.every((card) => card.href.includes('/releases/latest'))).toBe(
+            true
         );
     });
 
