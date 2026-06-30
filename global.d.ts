@@ -20,6 +20,7 @@ declare global {
             BACKEND_URL_BACKUP?: string;
             GITHUB_REPO?: string;
             DESKTOP_RELEASES_URL?: string;
+            DESKTOP_RELEASES_FALLBACK_REPO?: string;
         };
         electron: ElectronBridgeApi;
         process: NodeJS.Process;

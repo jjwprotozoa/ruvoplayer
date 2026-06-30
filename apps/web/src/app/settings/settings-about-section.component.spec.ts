@@ -1,16 +1,26 @@
+import {
+    HttpClientTestingModule,
+    HttpTestingController,
+} from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { SettingsAboutSectionComponent } from './settings-about-section.component';
 
 describe('SettingsAboutSectionComponent', () => {
     let fixture: ComponentFixture<SettingsAboutSectionComponent>;
+    let httpMock: HttpTestingController;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [SettingsAboutSectionComponent, TranslateModule.forRoot()],
+            imports: [
+                SettingsAboutSectionComponent,
+                TranslateModule.forRoot(),
+                HttpClientTestingModule,
+            ],
         }).compileComponents();
 
         fixture = TestBed.createComponent(SettingsAboutSectionComponent);
+        httpMock = TestBed.inject(HttpTestingController);
         fixture.componentRef.setInput('activeSection', 'about');
         fixture.componentRef.setInput(
             'desktopReleasesUrl',
@@ -22,19 +32,107 @@ describe('SettingsAboutSectionComponent', () => {
         );
     });
 
-    it('shows the desktop download card in PWA mode', () => {
+    afterEach(() => {
+        httpMock.verify();
+    });
+
+    function flushReleaseAssets(
+        primaryAssets: Array<{
+            name: string;
+            browser_download_url: string;
+            size: number;
+        }>,
+        fallbackAssets: Array<{
+            name: string;
+            browser_download_url: string;
+            size: number;
+        }> = []
+    ): void {
+        fixture.componentInstance.ensureDesktopDownloadsLoaded();
+        const primaryRequest = httpMock.expectOne(
+            'https://api.github.com/repos/jjwprotozoa/ruvoplayer/releases/latest'
+        );
+        primaryRequest.flush({ assets: primaryAssets });
+
+        if (fallbackAssets.length > 0) {
+            const fallbackRequest = httpMock.expectOne(
+                'https://api.github.com/repos/4gray/iptvnator/releases/latest'
+            );
+            fallbackRequest.flush({ assets: fallbackAssets });
+        }
+
+        fixture.detectChanges();
+    }
+
+    it('shows common desktop downloads plus the mobile web app card in PWA mode', () => {
         fixture.componentRef.setInput('isPwa', true);
         fixture.componentRef.setInput('isDesktop', false);
         fixture.detectChanges();
 
-        const link = fixture.nativeElement.querySelector(
-            '[data-test-id="link-desktop-download"]'
+        flushReleaseAssets(
+            [
+                {
+                    name: 'RuvoPlayer-0.22.0-mac-arm64.dmg',
+                    browser_download_url:
+                        'https://github.com/jjwprotozoa/ruvoplayer/releases/download/v0.22.0/RuvoPlayer-0.22.0-mac-arm64.dmg',
+                    size: 150_930_186,
+                },
+            ],
+            [
+                {
+                    name: 'iptvnator-0.21.0-windows-x64-setup.exe',
+                    browser_download_url:
+                        'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-setup.exe',
+                    size: 95_000_000,
+                },
+            ]
+        );
+
+        const macLink = fixture.nativeElement.querySelector(
+            '[data-test-id="link-desktop-download-mac-arm64"]'
+        ) as HTMLAnchorElement | null;
+        const windowsLink = fixture.nativeElement.querySelector(
+            '[data-test-id="link-desktop-download-windows"]'
+        ) as HTMLAnchorElement | null;
+        const mobileLink = fixture.nativeElement.querySelector(
+            '[data-test-id="link-desktop-download-mobile-web"]'
         ) as HTMLAnchorElement | null;
 
-        expect(link).toBeTruthy();
-        expect(link?.href).toContain(
-            'github.com/jjwprotozoa/ruvoplayer/releases/latest'
+        expect(macLink).toBeTruthy();
+        expect(macLink?.textContent).toContain('macOS (Apple Silicon)');
+        expect(windowsLink).toBeTruthy();
+        expect(windowsLink?.textContent).toContain('Windows');
+        expect(windowsLink?.textContent).toContain('IPTVnator upstream');
+        expect(mobileLink).toBeTruthy();
+        expect(mobileLink?.textContent).toContain('Android / mobile');
+    });
+
+    it('falls back to the generic desktop download card when release assets are unavailable', () => {
+        fixture.componentRef.setInput('isPwa', true);
+        fixture.componentRef.setInput('isDesktop', false);
+        fixture.detectChanges();
+
+        fixture.componentInstance.ensureDesktopDownloadsLoaded();
+        const primaryRequest = httpMock.expectOne(
+            'https://api.github.com/repos/jjwprotozoa/ruvoplayer/releases/latest'
         );
+        primaryRequest.flush('', { status: 500, statusText: 'Server Error' });
+        const fallbackRequest = httpMock.expectOne(
+            'https://api.github.com/repos/4gray/iptvnator/releases/latest'
+        );
+        fallbackRequest.flush('', { status: 500, statusText: 'Server Error' });
+        fixture.detectChanges();
+
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-mobile-web"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download"]'
+            )
+        ).toBeNull();
     });
 
     it('hides the desktop download card in Electron mode', () => {
@@ -45,6 +143,11 @@ describe('SettingsAboutSectionComponent', () => {
         expect(
             fixture.nativeElement.querySelector(
                 '[data-test-id="link-desktop-download"]'
+            )
+        ).toBeNull();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-mac-arm64"]'
             )
         ).toBeNull();
     });

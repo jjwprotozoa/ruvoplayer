@@ -1,6 +1,7 @@
 import {
     getRuntimeBackendUrls,
     getRuntimeDesktopReleasesUrl,
+    getRuntimeDesktopReleasesFallbackRepo,
     getRuntimeGithubProjectUrl,
     getRuntimeGithubRepo,
     resolveBackendUrl,
@@ -69,6 +70,22 @@ describe('runtime config helpers', () => {
         expect(getRuntimeDesktopReleasesUrl()).toBe(
             'https://example.com/ruvoplayer/releases/latest'
         );
+    });
+
+    it('uses upstream IPTVnator releases as the desktop fallback repo for the RuvoPlayer fork', () => {
+        windowRef.__IPTVNATOR_CONFIG__ = {
+            GITHUB_REPO: 'jjwprotozoa/ruvoplayer',
+        };
+
+        expect(getRuntimeDesktopReleasesFallbackRepo()).toBe('4gray/iptvnator');
+    });
+
+    it('does not configure a desktop fallback repo when already using upstream IPTVnator', () => {
+        windowRef.__IPTVNATOR_CONFIG__ = {
+            GITHUB_REPO: '4gray/iptvnator',
+        };
+
+        expect(getRuntimeDesktopReleasesFallbackRepo()).toBeUndefined();
     });
 
     it('enables service worker in production when supported', () => {

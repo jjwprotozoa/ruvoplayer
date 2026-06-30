@@ -1,6 +1,33 @@
-import { Component, input, ViewEncapsulation } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import {
+    Component,
+    DestroyRef,
+    ViewEncapsulation,
+    computed,
+    inject,
+    input,
+    signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { catchError, map, of, switchMap } from 'rxjs';
+import {
+    getRuntimeDesktopReleasesFallbackRepo,
+    getRuntimeGithubRepo,
+} from '../services/runtime-config';
+import {
+    DesktopReleaseAssetView,
+    GitHubReleaseAsset,
+    buildGitHubLatestReleaseApiUrl,
+    buildMobileWebAppDownload,
+    mergeCommonDesktopReleaseAssets,
+    pickCommonDesktopReleaseAssets,
+} from './desktop-release-assets.util';
+
+interface GitHubLatestReleaseResponse {
+    readonly assets?: GitHubReleaseAsset[];
+}
 
 @Component({
     selector: 'app-settings-about-section',
@@ -10,6 +37,9 @@ import { TranslateModule } from '@ngx-translate/core';
     styles: [':host { display: contents; }'],
 })
 export class SettingsAboutSectionComponent {
+    private readonly http = inject(HttpClient);
+    private readonly destroyRef = inject(DestroyRef);
+
     readonly activeSection = input.required<string>();
     readonly isDesktop = input(false);
     readonly isPwa = input(false);
@@ -17,4 +47,115 @@ export class SettingsAboutSectionComponent {
     readonly updateMessage = input<string | undefined>();
     readonly desktopReleasesUrl = input.required<string>();
     readonly githubProjectUrl = input.required<string>();
+
+    readonly desktopDownloads = signal<DesktopReleaseAssetView[]>([]);
+    readonly desktopDownloadsLoading = signal(false);
+    readonly desktopDownloadsFailed = signal(false);
+    readonly mobileWebAppDownload = computed(() =>
+        buildMobileWebAppDownload(this.resolveMobileWebAppUrl())
+    );
+    readonly visibleDesktopDownloads = computed(() => [
+        ...this.desktopDownloads(),
+        this.mobileWebAppDownload(),
+    ]);
+
+    private desktopDownloadsRequested = false;
+
+    constructor() {
+        this.destroyRef.onDestroy(() => {
+            this.desktopDownloadsRequested = false;
+        });
+    }
+
+    ensureDesktopDownloadsLoaded(): void {
+        if (!this.isPwa() || this.desktopDownloadsRequested) {
+            return;
+        }
+
+        this.desktopDownloadsRequested = true;
+        this.desktopDownloadsLoading.set(true);
+        this.desktopDownloadsFailed.set(false);
+
+        const primaryRepo = getRuntimeGithubRepo();
+        const fallbackRepo = getRuntimeDesktopReleasesFallbackRepo();
+
+        this.http
+            .get<GitHubLatestReleaseResponse>(
+                buildGitHubLatestReleaseApiUrl(primaryRepo)
+            )
+            .pipe(
+                switchMap((primaryRelease) => {
+                    const primaryAssets = pickCommonDesktopReleaseAssets(
+                        primaryRelease.assets ?? []
+                    );
+
+                    if (!fallbackRepo) {
+                        return of(primaryAssets);
+                    }
+
+                    return this.http
+                        .get<GitHubLatestReleaseResponse>(
+                            buildGitHubLatestReleaseApiUrl(fallbackRepo)
+                        )
+                        .pipe(
+                            map((fallbackRelease) =>
+                                mergeCommonDesktopReleaseAssets(
+                                    primaryAssets,
+                                    pickCommonDesktopReleaseAssets(
+                                        fallbackRelease.assets ?? []
+                                    )
+                                )
+                            ),
+                            catchError(() => of(primaryAssets))
+                        );
+                }),
+                catchError(() => {
+                    if (!fallbackRepo) {
+                        return of([] as DesktopReleaseAssetView[]);
+                    }
+
+                    return this.http
+                        .get<GitHubLatestReleaseResponse>(
+                            buildGitHubLatestReleaseApiUrl(fallbackRepo)
+                        )
+                        .pipe(
+                            map((fallbackRelease) =>
+                                pickCommonDesktopReleaseAssets(
+                                    fallbackRelease.assets ?? []
+                                ).map((asset) => ({
+                                    ...asset,
+                                    isUpstreamFallback: true,
+                                    sublabel: asset.sublabel.includes(
+                                        'IPTVnator upstream'
+                                    )
+                                        ? asset.sublabel
+                                        : `${asset.sublabel}${asset.sublabel ? ' · ' : ''}IPTVnator upstream`,
+                                }))
+                            ),
+                            catchError(() => of([] as DesktopReleaseAssetView[]))
+                        );
+                }),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe({
+                next: (downloads) => {
+                    this.desktopDownloads.set(downloads);
+                    this.desktopDownloadsLoading.set(false);
+                    this.desktopDownloadsFailed.set(downloads.length === 0);
+                },
+                error: () => {
+                    this.desktopDownloadsFailed.set(true);
+                    this.desktopDownloadsLoading.set(false);
+                },
+            });
+    }
+
+    private resolveMobileWebAppUrl(): string {
+        const configuredOrigin = globalThis.window?.location?.origin?.trim();
+        if (configuredOrigin && configuredOrigin !== 'null') {
+            return configuredOrigin;
+        }
+
+        return 'https://ruvoplayer.vercel.app';
+    }
 }

@@ -5,6 +5,7 @@ export interface IptvnatorRuntimeConfig {
     readonly BACKEND_URL_BACKUP?: string;
     readonly GITHUB_REPO?: string;
     readonly DESKTOP_RELEASES_URL?: string;
+    readonly DESKTOP_RELEASES_FALLBACK_REPO?: string;
 }
 
 function resolveRuntimeString(
@@ -52,6 +53,17 @@ export function getRuntimeDesktopReleasesUrl(): string {
         runtimeConfig?.DESKTOP_RELEASES_URL,
         AppConfig.DESKTOP_RELEASES_URL
     );
+}
+
+export function getRuntimeDesktopReleasesFallbackRepo(): string | undefined {
+    const runtimeConfig = globalThis.window?.__IPTVNATOR_CONFIG__;
+    const configuredFallback = runtimeConfig?.DESKTOP_RELEASES_FALLBACK_REPO?.trim();
+    if (configuredFallback) {
+        return configuredFallback;
+    }
+
+    const primaryRepo = getRuntimeGithubRepo();
+    return primaryRepo === '4gray/iptvnator' ? undefined : '4gray/iptvnator';
 }
 
 export interface ServiceWorkerRuntimeContext {

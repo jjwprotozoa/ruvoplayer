@@ -399,7 +399,10 @@
         "DESKTOP_APP_TITLE": "Desktop app",
         "DESKTOP_APP_DESCRIPTION": "Get the full desktop experience with EPG, offline downloads, local file import, and external MPV/VLC playback.",
         "DESKTOP_APP_DOWNLOAD": "Download for desktop",
-        "DESKTOP_APP_PLATFORMS": "macOS, Windows, and Linux"
+        "DESKTOP_APP_PLATFORMS": "macOS, Windows, and Linux",
+        "DESKTOP_APP_LOADING": "Loading available downloads…",
+        "DESKTOP_APP_ALL_RELEASES": "View all releases on GitHub",
+        "DESKTOP_APP_RELEASES_UNAVAILABLE": "Could not load the latest release files. Use the GitHub releases page instead."
     },
     "THEMES": {
         "DARK_THEME": "Dunkel",
