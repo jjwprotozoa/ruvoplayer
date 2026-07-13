@@ -162,8 +162,53 @@ export function unwrapProxiedStreamUrl(url: string): string {
     return url;
 }
 
+export interface ExternalPlayerLaunchUrls {
+    readonly vlc: string;
+    readonly iina: string | null;
+    readonly directDownload: string;
+}
+
+/**
+ * Build VLC launch URL. The `vlc://` protocol may not be registered on all
+ * platforms (notably macOS). Users may need to copy the URL and open manually.
+ */
 export function buildVlcLaunchUrl(streamUrl: string): string {
     return `vlc://${streamUrl}`;
+}
+
+/**
+ * Build IINA launch URL for macOS. IINA is a popular media player on macOS
+ * that reliably registers the `iina://` protocol.
+ */
+export function buildIinaLaunchUrl(streamUrl: string): string {
+    return `iina://weblink?url=${encodeURIComponent(streamUrl)}`;
+}
+
+/**
+ * Build all available external player launch URLs for a given stream.
+ */
+export function buildExternalPlayerLaunchUrls(
+    streamUrl: string
+): ExternalPlayerLaunchUrls {
+    const isMac =
+        typeof navigator !== 'undefined' &&
+        /mac/i.test(navigator.platform || navigator.userAgent);
+
+    return {
+        vlc: buildVlcLaunchUrl(streamUrl),
+        iina: isMac ? buildIinaLaunchUrl(streamUrl) : null,
+        directDownload: streamUrl,
+    };
+}
+
+/**
+ * Detect if we're running on macOS where VLC protocol is unreliable.
+ */
+export function isMacPlatform(): boolean {
+    if (typeof navigator === 'undefined') {
+        return false;
+    }
+    return /mac/i.test(navigator.platform || navigator.userAgent);
 }
 
 export function getLikelyBrowserUnsupportedCodecLabels(

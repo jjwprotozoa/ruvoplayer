@@ -71,16 +71,29 @@ export function isAccessDeniedStatus(
     );
 }
 
+/**
+ * Non-standard HTTP status codes used by IPTV/Xtream providers for blocking.
+ * These are not part of the HTTP spec but are returned by many providers.
+ */
+const IPTV_PROVIDER_BLOCK_STATUS_CODES = new Set([
+    451, // Unavailable for legal reasons (sometimes used by providers)
+    458, // Common Xtream provider IP blocking code
+    551, // Common Xtream provider account/content blocking code
+    552, // Provider-specific blocking
+    553, // Provider-specific blocking
+]);
+
 export function isStreamUnavailableStatus(
     httpStatus: number | undefined,
     details: string
 ): boolean {
-    if (
-        httpStatus !== undefined &&
-        httpStatus >= 500 &&
-        httpStatus < 600
-    ) {
-        return true;
+    if (httpStatus !== undefined) {
+        if (httpStatus >= 500 && httpStatus < 600) {
+            return true;
+        }
+        if (IPTV_PROVIDER_BLOCK_STATUS_CODES.has(httpStatus)) {
+            return true;
+        }
     }
 
     const lowerDetails = details.toLowerCase();
@@ -92,10 +105,13 @@ export function isStreamUnavailableStatus(
         lowerDetails.includes('service unavailable') ||
         lowerDetails.includes('bad gateway') ||
         lowerDetails.includes('internal server error') ||
+        lowerDetails.includes('stream server responded with status') ||
         /\b500\b/.test(lowerDetails) ||
         /\b502\b/.test(lowerDetails) ||
         /\b503\b/.test(lowerDetails) ||
-        /\b504\b/.test(lowerDetails)
+        /\b504\b/.test(lowerDetails) ||
+        /\b458\b/.test(lowerDetails) ||
+        /\b551\b/.test(lowerDetails)
     );
 }
 

@@ -98,7 +98,9 @@ export class XtreamUrlService {
     /**
      * Construct VOD stream URL
      * Format: {serverUrl}/movie/{username}/{password}/{streamId}.{extension}
-     * In PWA mode, the URL is wrapped through the stream proxy to handle CORS.
+     * In PWA mode, MKV/AVI containers are converted to m3u8 (HLS) since browsers
+     * cannot decode them natively. Most Xtream servers support serving VOD as HLS.
+     * The URL is also wrapped through the stream proxy to handle CORS.
      */
     constructVodUrl(
         credentials: XtreamCredentials,
@@ -106,8 +108,8 @@ export class XtreamUrlService {
     ): string {
         const vod = vodItem as XtreamVodStreamLike;
         const streamId = vod.movie_data?.stream_id ?? vod.stream_id;
-        const extension = vodItem.movie_data?.container_extension;
-        if (!streamId || !extension) {
+        const containerExtension = vodItem.movie_data?.container_extension;
+        if (!streamId || !containerExtension) {
             return '';
         }
         const normalizedCredentials = this.normalizeCredentials(credentials);
@@ -115,6 +117,7 @@ export class XtreamUrlService {
             return '';
         }
 
+        const extension = this.resolvePwaPlaybackExtension(containerExtension);
         const rawUrl = `${normalizedCredentials.serverUrl}/movie/${normalizedCredentials.username}/${normalizedCredentials.password}/${streamId}.${extension}`;
         return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
@@ -122,7 +125,9 @@ export class XtreamUrlService {
     /**
      * Construct series episode stream URL
      * Format: {serverUrl}/series/{username}/{password}/{episodeId}.{extension}
-     * In PWA mode, the URL is wrapped through the stream proxy to handle CORS.
+     * In PWA mode, MKV/AVI containers are converted to m3u8 (HLS) since browsers
+     * cannot decode them natively. Most Xtream servers support serving series as HLS.
+     * The URL is also wrapped through the stream proxy to handle CORS.
      */
     constructEpisodeUrl(
         credentials: XtreamCredentials,
@@ -133,7 +138,10 @@ export class XtreamUrlService {
             return '';
         }
 
-        const rawUrl = `${normalizedCredentials.serverUrl}/series/${normalizedCredentials.username}/${normalizedCredentials.password}/${episode.id}.${episode.container_extension}`;
+        const extension = this.resolvePwaPlaybackExtension(
+            episode.container_extension
+        );
+        const rawUrl = `${normalizedCredentials.serverUrl}/series/${normalizedCredentials.username}/${normalizedCredentials.password}/${episode.id}.${extension}`;
         return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
 
@@ -355,6 +363,24 @@ export class XtreamUrlService {
         }
 
         return requested;
+    }
+
+    /**
+     * Convert container extensions that browsers cannot decode (MKV, AVI) to
+     * m3u8 (HLS) when running in PWA mode. Most Xtream servers support serving
+     * VOD and series content as HLS when the extension is changed.
+     */
+    private resolvePwaPlaybackExtension(containerExtension: string): string {
+        const normalized = containerExtension.trim().toLowerCase();
+        if (!this.runtime.isPwa) {
+            return normalized;
+        }
+
+        if (normalized === 'mkv' || normalized === 'avi') {
+            return 'm3u8';
+        }
+
+        return normalized;
     }
 
     private formatCatchupStartTime(

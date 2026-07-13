@@ -127,6 +127,69 @@ describe('XtreamUrlService', () => {
         );
     });
 
+    it('converts mkv VOD to m3u8 HLS format in PWA mode', () => {
+        runtimeCapabilities.isPwa = true;
+        runtimeCapabilities.isElectron = false;
+
+        const vodItem: XtreamVodDetails = {
+            movie_data: {
+                added: '',
+                category_id: '',
+                container_extension: 'mkv',
+                custom_sid: null,
+                direct_source: '',
+                name: 'Movie',
+                stream_id: 101,
+            },
+        };
+
+        const url = service.constructVodUrl(credentials, vodItem);
+
+        expect(url).toBe('http://demo.example/movie/demo/secret/101.m3u8');
+    });
+
+    it('converts mkv series episode to m3u8 HLS format in PWA mode', () => {
+        runtimeCapabilities.isPwa = true;
+        runtimeCapabilities.isElectron = false;
+
+        const episode: XtreamSerieEpisode = {
+            added: '',
+            container_extension: 'mkv',
+            custom_sid: '',
+            direct_source: '',
+            episode_num: 1,
+            id: '202',
+            info: [],
+            season: 1,
+            title: 'Episode',
+        };
+
+        const url = service.constructEpisodeUrl(credentials, episode);
+
+        expect(url).toBe('http://demo.example/series/demo/secret/202.m3u8');
+    });
+
+    it('keeps mp4 extension unchanged in PWA mode', () => {
+        runtimeCapabilities.isPwa = true;
+        runtimeCapabilities.isElectron = false;
+
+        const vodItem: XtreamVodDetails = {
+            movie_data: {
+                added: '',
+                category_id: '',
+                container_extension: 'mp4',
+                custom_sid: null,
+                direct_source: '',
+                name: 'Movie',
+                stream_id: 101,
+            },
+        };
+
+        const url = service.constructVodUrl(credentials, vodItem);
+
+        expect(url).toBe('http://demo.example/movie/demo/secret/101.mp4');
+    });
+
     it('detects the legacy catchup scheme once and then uses the cached result', async () => {
         const xtreamProbeUrl = jest
             .fn()

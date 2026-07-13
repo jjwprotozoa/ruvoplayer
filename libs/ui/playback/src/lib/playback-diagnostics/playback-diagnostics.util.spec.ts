@@ -188,7 +188,7 @@ describe('playback diagnostics', () => {
 
         expect(issue.code).toBe(PlaybackDiagnosticCode.StreamUnavailable);
         expect(issue.httpStatus).toBe(503);
-        expect(issue.externalFallbackRecommended).toBe(false);
+        expect(issue.externalFallbackRecommended).toBe(true);
     });
 
     it('classifies timeout network failures as stream-unavailable diagnostics', () => {
@@ -206,7 +206,7 @@ describe('playback diagnostics', () => {
         );
 
         expect(issue.code).toBe(PlaybackDiagnosticCode.StreamUnavailable);
-        expect(issue.externalFallbackRecommended).toBe(false);
+        expect(issue.externalFallbackRecommended).toBe(true);
     });
 
     it('does not treat provider-side blocked messages as browser access errors', () => {

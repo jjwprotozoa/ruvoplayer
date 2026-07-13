@@ -665,7 +665,7 @@ describe('WebPlayerViewComponent', () => {
         );
     });
 
-    it('shows stream-unavailable messaging without external player fallback actions', () => {
+    it('shows stream-unavailable messaging with external player fallback actions', () => {
         fixture.detectChanges();
         component.handlePlaybackIssue(createStreamUnavailableDiagnostic());
         fixture.detectChanges();
@@ -673,16 +673,16 @@ describe('WebPlayerViewComponent', () => {
         const banner = fixture.debugElement.query(
             By.css('[data-test-id="playback-diagnostic-banner"]')
         );
-        const mpvButton = fixture.debugElement.query(
-            By.css('[data-test-id="playback-fallback-mpv"]')
+        const vlcButton = fixture.debugElement.query(
+            By.css('[data-test-id="playback-fallback-vlc"]')
         );
 
-        expect(mpvButton).toBeNull();
+        expect(vlcButton).not.toBeNull();
         expect(banner.nativeElement.textContent).toContain(
             'PLAYBACK_DIAGNOSTICS.STREAM_UNAVAILABLE.TITLE'
         );
         expect(banner.nativeElement.textContent).toContain(
-            'PLAYBACK_DIAGNOSTICS.INLINE_FAILURE_TITLE'
+            'PLAYBACK_DIAGNOSTICS.NATIVE_FALLBACK_TITLE'
         );
     });
 

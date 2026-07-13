@@ -31,13 +31,17 @@ import {
 
 export * from './playback-diagnostics.model';
 export {
+    buildExternalPlayerLaunchUrls,
+    buildIinaLaunchUrl,
     buildVlcLaunchUrl,
     createPlaybackSourceMetadata,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
     isBrowserInlineUnsupportedStreamUrl,
+    isMacPlatform,
     resolvePlaybackMimeType,
     unwrapProxiedStreamUrl,
+    type ExternalPlayerLaunchUrls,
 } from './playback-media-source.util';
 
 const SOURCE_NOT_SUPPORTED_CODE = 4;
@@ -419,7 +423,8 @@ function isExternalFallbackRecommended(code: PlaybackDiagnosticCode): boolean {
         code === DiagnosticCode.UnsupportedCodec ||
         code === DiagnosticCode.MediaDecodeError ||
         code === DiagnosticCode.BrowserAccessError ||
-        code === DiagnosticCode.DrmOrEncryption
+        code === DiagnosticCode.DrmOrEncryption ||
+        code === DiagnosticCode.StreamUnavailable
     );
 }
 

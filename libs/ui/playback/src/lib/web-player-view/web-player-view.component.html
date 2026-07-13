@@ -170,8 +170,34 @@
                     class="web-player-diagnostic__player-actions"
                     aria-label="External player fallbacks"
                 >
+                    @if (isMacPlatform()) {
+                        <button
+                            class="web-player-diagnostic__player-card web-player-diagnostic__player-card--primary"
+                            type="button"
+                            data-test-id="playback-fallback-iina"
+                            (click)="openInIinaFromBrowser()"
+                        >
+                            <mat-icon aria-hidden="true">play_circle</mat-icon>
+                            <span class="web-player-diagnostic__player-copy">
+                                <span class="web-player-diagnostic__player-label">
+                                    {{
+                                        'PLAYBACK_DIAGNOSTICS.ACTION_OPEN_IINA'
+                                            | translate
+                                    }}
+                                </span>
+                                <span class="web-player-diagnostic__player-hint">
+                                    {{
+                                        'PLAYBACK_DIAGNOSTICS.ACTION_OPEN_IINA_HINT'
+                                            | translate
+                                    }}
+                                </span>
+                            </span>
+                        </button>
+                    }
+
                     <button
-                        class="web-player-diagnostic__player-card web-player-diagnostic__player-card--primary"
+                        class="web-player-diagnostic__player-card"
+                        [class.web-player-diagnostic__player-card--primary]="!isMacPlatform()"
                         type="button"
                         data-test-id="playback-fallback-vlc"
                         (click)="openInVlcFromBrowser()"
@@ -187,6 +213,29 @@
                             <span class="web-player-diagnostic__player-hint">
                                 {{
                                     'PLAYBACK_DIAGNOSTICS.ACTION_OPEN_VLC_PWA_HINT'
+                                        | translate
+                                }}
+                            </span>
+                        </span>
+                    </button>
+
+                    <button
+                        class="web-player-diagnostic__player-card"
+                        type="button"
+                        data-test-id="playback-download"
+                        (click)="downloadStream()"
+                    >
+                        <mat-icon aria-hidden="true">download</mat-icon>
+                        <span class="web-player-diagnostic__player-copy">
+                            <span class="web-player-diagnostic__player-label">
+                                {{
+                                    'PLAYBACK_DIAGNOSTICS.ACTION_DOWNLOAD'
+                                        | translate
+                                }}
+                            </span>
+                            <span class="web-player-diagnostic__player-hint">
+                                {{
+                                    'PLAYBACK_DIAGNOSTICS.ACTION_DOWNLOAD_HINT'
                                         | translate
                                 }}
                             </span>

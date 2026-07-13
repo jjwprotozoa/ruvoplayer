@@ -33,10 +33,12 @@ import {
     type PlaybackDiagnostic,
     PlaybackDiagnosticCode,
     type PlaybackFallbackRequest,
+    buildIinaLaunchUrl,
     buildVlcLaunchUrl,
     classifyPreemptivePlaybackIssue,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
+    isMacPlatform,
     resolvePlaybackMimeType,
     unwrapProxiedStreamUrl,
 } from '../playback-diagnostics/playback-diagnostics.util';
@@ -123,12 +125,14 @@ export class WebPlayerViewComponent {
                 diagnostic.code === PlaybackDiagnosticCode.UnsupportedContainer ||
                 diagnostic.code === PlaybackDiagnosticCode.UnsupportedCodec ||
                 diagnostic.code === PlaybackDiagnosticCode.MediaDecodeError ||
-                diagnostic.code === PlaybackDiagnosticCode.BrowserAccessError)
+                diagnostic.code === PlaybackDiagnosticCode.BrowserAccessError ||
+                diagnostic.code === PlaybackDiagnosticCode.StreamUnavailable)
         );
     });
     readonly externalStreamUrl = computed(() =>
         unwrapProxiedStreamUrl(this.resolvedPlayback().streamUrl)
     );
+    readonly isMacPlatform = computed(() => isMacPlatform());
     readonly diagnosticHeadlineKey = computed(() =>
         this.canShowExternalFallbackActions() ||
         this.canShowPwaExternalPlayerActions()
@@ -284,6 +288,31 @@ export class WebPlayerViewComponent {
         }
 
         window.location.assign(buildVlcLaunchUrl(streamUrl));
+    }
+
+    openInIinaFromBrowser(): void {
+        const streamUrl = this.externalStreamUrl();
+        if (!streamUrl || typeof window === 'undefined') {
+            return;
+        }
+
+        window.location.assign(buildIinaLaunchUrl(streamUrl));
+    }
+
+    downloadStream(): void {
+        const streamUrl = this.externalStreamUrl();
+        if (!streamUrl || typeof window === 'undefined') {
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = streamUrl;
+        link.download = '';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     retryPlayback(): void {
