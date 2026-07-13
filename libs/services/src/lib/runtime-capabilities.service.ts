@@ -265,6 +265,47 @@ export class RuntimeCapabilitiesService {
         );
     }
 
+    /**
+     * Wraps a stream URL through the PWA backend proxy to handle CORS.
+     * Returns the original URL if running in Electron or when the browser
+     * cannot play the container inline (MKV/AVI/etc.) — those need VLC with
+     * the direct provider URL, not a proxied fetch.
+     */
+    wrapStreamUrlForProxy(streamUrl: string, backendUrl?: string): string {
+        if (this.isElectron || this.shouldBypassStreamProxy(streamUrl)) {
+            return streamUrl;
+        }
+
+        const baseUrl = backendUrl ?? this.getDefaultBackendUrl();
+        if (!baseUrl) {
+            return streamUrl;
+        }
+
+        return `${baseUrl}/stream-proxy?url=${encodeURIComponent(streamUrl)}`;
+    }
+
+    private shouldBypassStreamProxy(streamUrl: string): boolean {
+        try {
+            const pathname = new URL(streamUrl).pathname.toLowerCase();
+            const extension = pathname.match(/\.([a-z0-9]+)$/)?.[1];
+            return extension
+                ? ['mkv', 'avi', 'wmv', 'flv'].includes(extension)
+                : false;
+        } catch {
+            return false;
+        }
+    }
+
+    private getDefaultBackendUrl(): string | undefined {
+        const config = (
+            typeof window !== 'undefined'
+                ? (window as { __IPTVNATOR_CONFIG__?: { BACKEND_URL?: string } })
+                      .__IPTVNATOR_CONFIG__
+                : undefined
+        );
+        return config?.BACKEND_URL?.trim() || '/api';
+    }
+
     private hasElectronMethod(methodName: string): boolean {
         const bridge = this.electronBridge as
             | Record<string, unknown>

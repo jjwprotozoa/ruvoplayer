@@ -4,7 +4,11 @@ import {
     XtreamSerieEpisode,
     XtreamVodDetails,
 } from '@iptvnator/shared/interfaces';
-import { DatabaseService, SettingsStore } from '@iptvnator/services';
+import {
+    DatabaseService,
+    RuntimeCapabilitiesService,
+    SettingsStore,
+} from '@iptvnator/services';
 import { XtreamCredentials } from './xtream-api.service';
 
 /**
@@ -57,6 +61,7 @@ const XTREAM_CATCHUP_SCHEME_KEY_PREFIX = 'xtream-catchup-scheme:';
 @Injectable({ providedIn: 'root' })
 export class XtreamUrlService {
     private readonly databaseService = inject(DatabaseService);
+    private readonly runtime = inject(RuntimeCapabilitiesService);
     private readonly settingsStore = inject(SettingsStore);
     private readonly catchupSchemeCache = new Map<
         string,
@@ -70,6 +75,7 @@ export class XtreamUrlService {
     /**
      * Construct live stream URL
      * Format: {serverUrl}/live/{username}/{password}/{streamId}.{format}
+     * In PWA mode, the URL is wrapped through the stream proxy to handle CORS.
      */
     constructLiveUrl(
         credentials: XtreamCredentials,
@@ -85,12 +91,14 @@ export class XtreamUrlService {
             credentials,
             format ?? this.settingsStore.streamFormat() ?? 'ts'
         );
-        return `${normalizedCredentials.serverUrl}/live/${normalizedCredentials.username}/${normalizedCredentials.password}/${xtreamId}.${streamFormat}`;
+        const rawUrl = `${normalizedCredentials.serverUrl}/live/${normalizedCredentials.username}/${normalizedCredentials.password}/${xtreamId}.${streamFormat}`;
+        return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
 
     /**
      * Construct VOD stream URL
      * Format: {serverUrl}/movie/{username}/{password}/{streamId}.{extension}
+     * In PWA mode, the URL is wrapped through the stream proxy to handle CORS.
      */
     constructVodUrl(
         credentials: XtreamCredentials,
@@ -107,12 +115,14 @@ export class XtreamUrlService {
             return '';
         }
 
-        return `${normalizedCredentials.serverUrl}/movie/${normalizedCredentials.username}/${normalizedCredentials.password}/${streamId}.${extension}`;
+        const rawUrl = `${normalizedCredentials.serverUrl}/movie/${normalizedCredentials.username}/${normalizedCredentials.password}/${streamId}.${extension}`;
+        return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
 
     /**
      * Construct series episode stream URL
      * Format: {serverUrl}/series/{username}/{password}/{episodeId}.{extension}
+     * In PWA mode, the URL is wrapped through the stream proxy to handle CORS.
      */
     constructEpisodeUrl(
         credentials: XtreamCredentials,
@@ -123,7 +133,8 @@ export class XtreamUrlService {
             return '';
         }
 
-        return `${normalizedCredentials.serverUrl}/series/${normalizedCredentials.username}/${normalizedCredentials.password}/${episode.id}.${episode.container_extension}`;
+        const rawUrl = `${normalizedCredentials.serverUrl}/series/${normalizedCredentials.username}/${normalizedCredentials.password}/${episode.id}.${episode.container_extension}`;
+        return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
 
     constructCatchupUrl(
@@ -148,6 +159,7 @@ export class XtreamUrlService {
             serverTimezone
         );
 
+        let rawUrl: string;
         if (scheme === 'legacy') {
             const params = new URLSearchParams({
                 username: normalizedCredentials.rawUsername,
@@ -156,10 +168,12 @@ export class XtreamUrlService {
                 start: timeString,
                 duration: String(durationMinutes),
             });
-            return `${normalizedCredentials.serverUrl}/streaming/timeshift.php?${params.toString()}`;
+            rawUrl = `${normalizedCredentials.serverUrl}/streaming/timeshift.php?${params.toString()}`;
+        } else {
+            rawUrl = `${normalizedCredentials.serverUrl}/timeshift/${normalizedCredentials.username}/${normalizedCredentials.password}/${durationMinutes}/${timeString}/${streamId}.ts`;
         }
 
-        return `${normalizedCredentials.serverUrl}/timeshift/${normalizedCredentials.username}/${normalizedCredentials.password}/${durationMinutes}/${timeString}/${streamId}.ts`;
+        return this.runtime.wrapStreamUrlForProxy(rawUrl);
     }
 
     async resolveCatchupUrl(

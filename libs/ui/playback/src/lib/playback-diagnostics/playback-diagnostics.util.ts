@@ -22,17 +22,22 @@ import {
     normalizeErrorDetails,
 } from './playback-error-patterns.util';
 import {
+    createPlaybackSourceMetadata,
+    isExternalPlayerOnlyStreamUrl,
     isLikelyContainerIssue,
     mergeCodecMetadata,
+    unwrapProxiedStreamUrl,
 } from './playback-media-source.util';
 
 export * from './playback-diagnostics.model';
 export {
+    buildVlcLaunchUrl,
     createPlaybackSourceMetadata,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
     isBrowserInlineUnsupportedStreamUrl,
     resolvePlaybackMimeType,
+    unwrapProxiedStreamUrl,
 } from './playback-media-source.util';
 
 const SOURCE_NOT_SUPPORTED_CODE = 4;
@@ -209,6 +214,66 @@ export function classifyMpegTsPlaybackIssue(
         metadata,
         details,
     });
+}
+
+export function isMixedContentStreamUrl(
+    url: string,
+    pageProtocol: string | undefined = globalThis.location?.protocol
+): boolean {
+    if (pageProtocol !== 'https:') {
+        return false;
+    }
+
+    try {
+        const parsedUrl = new URL(
+            url,
+            typeof globalThis.location?.origin === 'string'
+                ? globalThis.location.origin
+                : 'http://iptvnator.local'
+        );
+        const pathname = parsedUrl.pathname.replace(/\/+$/, '').toLowerCase();
+
+        if (
+            pathname.endsWith('/stream-proxy') ||
+            pathname.endsWith('/api/stream-proxy')
+        ) {
+            return false;
+        }
+
+        return parsedUrl.protocol === 'http:';
+    } catch {
+        return false;
+    }
+}
+
+export function classifyPreemptivePlaybackIssue(
+    streamUrl: string,
+    player: PlaybackSourceMetadata['player']
+): PlaybackDiagnostic | null {
+    const metadata = createPlaybackSourceMetadata({
+        url: streamUrl,
+        player,
+    });
+
+    if (isExternalPlayerOnlyStreamUrl(streamUrl)) {
+        return createDiagnostic({
+            code: DiagnosticCode.UnsupportedContainer,
+            source: DiagnosticSource.Source,
+            metadata,
+            details: 'Browser cannot decode this container inline.',
+        });
+    }
+
+    if (isMixedContentStreamUrl(streamUrl)) {
+        return createDiagnostic({
+            code: DiagnosticCode.BrowserAccessError,
+            source: DiagnosticSource.Source,
+            metadata,
+            details: 'blocked by mixed content policy',
+        });
+    }
+
+    return null;
 }
 
 export function classifyUnsupportedHlsManifestCodecs(

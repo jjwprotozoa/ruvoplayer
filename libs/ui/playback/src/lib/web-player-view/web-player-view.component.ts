@@ -33,9 +33,12 @@ import {
     type PlaybackDiagnostic,
     PlaybackDiagnosticCode,
     type PlaybackFallbackRequest,
+    buildVlcLaunchUrl,
+    classifyPreemptivePlaybackIssue,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
     resolvePlaybackMimeType,
+    unwrapProxiedStreamUrl,
 } from '../playback-diagnostics/playback-diagnostics.util';
 import type { SeriesPlaybackNavigation } from '../portal-inline-player/series-playback-navigation';
 import { VjsPlayerComponent } from '../vjs-player/vjs-player.component';
@@ -108,8 +111,27 @@ export class WebPlayerViewComponent {
             this.runtime.supportsManagedExternalPlayers &&
             !!this.visiblePlaybackDiagnostic()?.externalFallbackRecommended
     );
+    readonly canShowPwaExternalPlayerActions = computed(() => {
+        if (this.runtime.supportsManagedExternalPlayers) {
+            return false;
+        }
+
+        const diagnostic = this.visiblePlaybackDiagnostic();
+        return (
+            !!diagnostic &&
+            (diagnostic.externalFallbackRecommended ||
+                diagnostic.code === PlaybackDiagnosticCode.UnsupportedContainer ||
+                diagnostic.code === PlaybackDiagnosticCode.UnsupportedCodec ||
+                diagnostic.code === PlaybackDiagnosticCode.MediaDecodeError ||
+                diagnostic.code === PlaybackDiagnosticCode.BrowserAccessError)
+        );
+    });
+    readonly externalStreamUrl = computed(() =>
+        unwrapProxiedStreamUrl(this.resolvedPlayback().streamUrl)
+    );
     readonly diagnosticHeadlineKey = computed(() =>
-        this.canShowExternalFallbackActions()
+        this.canShowExternalFallbackActions() ||
+        this.canShowPwaExternalPlayerActions()
             ? 'PLAYBACK_DIAGNOSTICS.NATIVE_FALLBACK_TITLE'
             : 'PLAYBACK_DIAGNOSTICS.INLINE_FAILURE_TITLE'
     );
@@ -142,8 +164,25 @@ export class WebPlayerViewComponent {
             this.selectedPlayer();
 
             const playback = this.resolvedPlayback();
-            this.playbackDiagnostic.set(null);
+            const preemptiveIssue = this.runtime.isPwa
+                ? classifyPreemptivePlaybackIssue(
+                      playback.streamUrl,
+                      this.toDiagnosticPlayer(this.selectedPlayer())
+                  )
+                : null;
+
+            this.playbackDiagnostic.set(preemptiveIssue);
             this.setChannel(playback);
+
+            if (preemptiveIssue) {
+                this.vjsOptions = {
+                    isLive: this.isLivePlayback(playback),
+                    reloadToken: untracked(() => this.reloadToken()),
+                    sources: [],
+                };
+                return;
+            }
+
             this.setVjsOptions(
                 playback.streamUrl,
                 this.isLivePlayback(playback)
@@ -223,12 +262,37 @@ export class WebPlayerViewComponent {
         });
     }
 
+    openInVlcFromBrowser(): void {
+        const streamUrl = this.externalStreamUrl();
+        if (!streamUrl || typeof window === 'undefined') {
+            return;
+        }
+
+        window.location.assign(buildVlcLaunchUrl(streamUrl));
+    }
+
     retryPlayback(): void {
         const playback = this.resolvedPlayback();
+        const preemptiveIssue = this.runtime.isPwa
+            ? classifyPreemptivePlaybackIssue(
+                  playback.streamUrl,
+                  this.toDiagnosticPlayer(this.selectedPlayer())
+              )
+            : null;
 
-        this.playbackDiagnostic.set(null);
+        this.playbackDiagnostic.set(preemptiveIssue);
         this.reloadToken.update((value) => value + 1);
         this.setChannel(playback);
+
+        if (preemptiveIssue) {
+            this.vjsOptions = {
+                isLive: this.isLivePlayback(playback),
+                reloadToken: untracked(() => this.reloadToken()),
+                sources: [],
+            };
+            return;
+        }
+
         this.setVjsOptions(playback.streamUrl, this.isLivePlayback(playback));
     }
 
@@ -237,11 +301,18 @@ export class WebPlayerViewComponent {
     }
 
     getDiagnosticDescriptionKey(issue: PlaybackDiagnostic): string {
-        if (
-            issue.code === PlaybackDiagnosticCode.BrowserAccessError &&
-            !this.runtime.supportsManagedExternalPlayers
-        ) {
-            return 'PLAYBACK_DIAGNOSTICS.BROWSER_ACCESS_ERROR.PWA_DESCRIPTION';
+        if (!this.runtime.supportsManagedExternalPlayers) {
+            if (issue.code === PlaybackDiagnosticCode.BrowserAccessError) {
+                return 'PLAYBACK_DIAGNOSTICS.BROWSER_ACCESS_ERROR.PWA_DESCRIPTION';
+            }
+
+            if (issue.code === PlaybackDiagnosticCode.UnsupportedContainer) {
+                return 'PLAYBACK_DIAGNOSTICS.UNSUPPORTED_CONTAINER.PWA_DESCRIPTION';
+            }
+
+            if (issue.code === PlaybackDiagnosticCode.UnsupportedCodec) {
+                return 'PLAYBACK_DIAGNOSTICS.UNSUPPORTED_CODEC.PWA_DESCRIPTION';
+            }
         }
 
         return `${this.getDiagnosticTranslationBase(issue)}.DESCRIPTION`;
@@ -386,6 +457,20 @@ export class WebPlayerViewComponent {
                 return 'Stream metadata';
             default:
                 return source;
+        }
+    }
+
+    private toDiagnosticPlayer(
+        player: VideoPlayer
+    ): PlaybackDiagnostic['player'] {
+        switch (player) {
+            case VideoPlayer.Html5Player:
+                return 'html5';
+            case VideoPlayer.ArtPlayer:
+                return 'artplayer';
+            case VideoPlayer.VideoJs:
+            default:
+                return 'videojs';
         }
     }
 }

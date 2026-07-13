@@ -490,6 +490,76 @@ describe('RuntimeCapabilitiesService', () => {
         expect(service.supportsXtreamSqliteDataSource).toBe(true);
         expect(service.supportsXtreamSectionNavigation).toBe(true);
     });
+
+    describe('wrapStreamUrlForProxy', () => {
+        it('returns the original URL when running in Electron', () => {
+            testWindow.electron = { platform: 'darwin' };
+
+            const service = new RuntimeCapabilitiesService();
+            const streamUrl = 'http://iptv.example/live/user/pass/123.ts';
+
+            expect(service.wrapStreamUrlForProxy(streamUrl)).toBe(streamUrl);
+        });
+
+        it('wraps the URL through the stream proxy in PWA mode', () => {
+            testWindow.electron = undefined;
+
+            const service = new RuntimeCapabilitiesService();
+            const streamUrl = 'http://iptv.example/live/user/pass/123.ts';
+
+            expect(service.wrapStreamUrlForProxy(streamUrl)).toBe(
+                '/api/stream-proxy?url=' + encodeURIComponent(streamUrl)
+            );
+        });
+
+        it('uses a custom backend URL when provided', () => {
+            testWindow.electron = undefined;
+
+            const service = new RuntimeCapabilitiesService();
+            const streamUrl = 'http://iptv.example/live/user/pass/123.ts';
+            const backendUrl = 'https://mybackend.example/api';
+
+            expect(
+                service.wrapStreamUrlForProxy(streamUrl, backendUrl)
+            ).toBe(
+                'https://mybackend.example/api/stream-proxy?url=' +
+                    encodeURIComponent(streamUrl)
+            );
+        });
+
+        it('does not proxy MKV and other browser-unsupported containers in PWA mode', () => {
+            testWindow.electron = undefined;
+
+            const service = new RuntimeCapabilitiesService();
+            const mkvUrl =
+                'http://ruvoplay.org/movie/20df70bc9647/2f18e3dd74/1977622.mkv';
+
+            expect(service.wrapStreamUrlForProxy(mkvUrl)).toBe(mkvUrl);
+        });
+
+        it('uses runtime config BACKEND_URL in PWA mode when available', () => {
+            testWindow.electron = undefined;
+            const testConfigWindow = window as unknown as {
+                __IPTVNATOR_CONFIG__?: { BACKEND_URL?: string };
+            };
+            const originalConfig = testConfigWindow.__IPTVNATOR_CONFIG__;
+            testConfigWindow.__IPTVNATOR_CONFIG__ = {
+                BACKEND_URL: 'https://custom.backend/api',
+            };
+
+            try {
+                const service = new RuntimeCapabilitiesService();
+                const streamUrl = 'http://iptv.example/live/user/pass/123.ts';
+
+                expect(service.wrapStreamUrlForProxy(streamUrl)).toBe(
+                    'https://custom.backend/api/stream-proxy?url=' +
+                        encodeURIComponent(streamUrl)
+                );
+            } finally {
+                testConfigWindow.__IPTVNATOR_CONFIG__ = originalConfig;
+            }
+        });
+    });
 });
 
 function createPlaylistStorageBridge(): Record<string, jest.Mock> {

@@ -194,7 +194,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
         }
 
         return {
-            streamUrl: `${playbackTarget.url}${playbackTarget.epgParams ?? ''}`,
+            streamUrl: this.runtime.wrapStreamUrlForProxy(
+                `${playbackTarget.url}${playbackTarget.epgParams ?? ''}`
+            ),
             title:
                 activeChannel.name?.trim() ||
                 activeChannel.tvg?.name ||

@@ -1,6 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { DataService, PlaylistsService } from '@iptvnator/services';
+import {
+    DataService,
+    PlaylistsService,
+    RuntimeCapabilitiesService,
+} from '@iptvnator/services';
 import { EpgRuntimeBridgeService } from '@iptvnator/epg/data-access';
 import {
     Channel,
@@ -60,6 +64,7 @@ export class StreamResolverService {
     private readonly xtreamApi = inject(XtreamApiService);
     private readonly xtreamUrl = inject(XtreamUrlService);
     private readonly dataService = inject(DataService);
+    private readonly runtime = inject(RuntimeCapabilitiesService);
     private readonly epgBridge = inject(EpgRuntimeBridgeService);
     private readonly stalkerSession = inject(StalkerSessionService);
     private readonly m3uEpgTimeoutMs = 3000;
@@ -284,7 +289,7 @@ export class StreamResolverService {
         }
 
         return {
-            streamUrl: channel.url ?? '',
+            streamUrl: this.wrapPlaybackStreamUrl(channel.url ?? ''),
             title: channel.name,
             thumbnail: channel.tvg?.logo ?? null,
             headers: Object.keys(headers).length > 0 ? headers : undefined,
@@ -324,7 +329,7 @@ export class StreamResolverService {
         const normalizedCmd = this.normalizeStalkerCmd(item.stalkerCmd ?? '');
         if (item.radio === 'true' && this.isHttpUrl(normalizedCmd)) {
             return {
-                streamUrl: normalizedCmd,
+                streamUrl: this.wrapPlaybackStreamUrl(normalizedCmd),
                 title: item.name,
                 thumbnail: item.logo ?? null,
                 userAgent: playlist?.userAgent,
@@ -360,7 +365,9 @@ export class StreamResolverService {
         const rawCmd = response?.js?.cmd ?? '';
 
         return {
-            streamUrl: this.normalizeStalkerCmd(rawCmd),
+            streamUrl: this.wrapPlaybackStreamUrl(
+                this.normalizeStalkerCmd(rawCmd)
+            ),
             title: item.name,
             thumbnail: item.logo ?? null,
             isLive: item.radio === 'true' ? undefined : true,
@@ -922,5 +929,13 @@ export class StreamResolverService {
 
     private isHttpUrl(value: string): boolean {
         return value.startsWith('http://') || value.startsWith('https://');
+    }
+
+    private wrapPlaybackStreamUrl(streamUrl: string): string {
+        if (!streamUrl) {
+            return '';
+        }
+
+        return this.runtime.wrapStreamUrlForProxy(streamUrl);
     }
 }

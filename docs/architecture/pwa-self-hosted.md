@@ -72,6 +72,12 @@ The current self-hosted PWA uses these `apps/web-backend` routes:
 - `GET /parse?targetId=<id>`
 - `GET /xtream?targetId=<id>&username=<u>&password=<p>&action=<action>`
 - `GET /stalker?targetId=<id>&macAddress=<mac>&action=<action>`
+- `GET /stream-proxy?url=<encoded-stream-url>` (CORS proxy for inline HLS/TS playback)
+
+Production Vercel deployment is documented in
+[`ruvoplayer-api-vercel.md`](./ruvoplayer-api-vercel.md). Deploy from
+`apps/web-backend` in this monorepo — the legacy standalone `ruvoplayer-api`
+GitHub repository does not include `/stream-proxy`.
 
 The PWA continues to use `PwaService`; only the backend base URL is resolved at
 runtime. Electron routes remain owned by the Electron backend and preload

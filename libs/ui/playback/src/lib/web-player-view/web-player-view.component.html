@@ -165,14 +165,42 @@
                         </span>
                     </button>
                 </div>
+            } @else if (canShowPwaExternalPlayerActions()) {
+                <div
+                    class="web-player-diagnostic__player-actions"
+                    aria-label="External player fallbacks"
+                >
+                    <button
+                        class="web-player-diagnostic__player-card web-player-diagnostic__player-card--primary"
+                        type="button"
+                        data-test-id="playback-fallback-vlc"
+                        (click)="openInVlcFromBrowser()"
+                    >
+                        <mat-icon aria-hidden="true">open_in_new</mat-icon>
+                        <span class="web-player-diagnostic__player-copy">
+                            <span class="web-player-diagnostic__player-label">
+                                {{
+                                    'PLAYBACK_DIAGNOSTICS.ACTION_OPEN_VLC'
+                                        | translate
+                                }}
+                            </span>
+                            <span class="web-player-diagnostic__player-hint">
+                                {{
+                                    'PLAYBACK_DIAGNOSTICS.ACTION_OPEN_VLC_PWA_HINT'
+                                        | translate
+                                }}
+                            </span>
+                        </span>
+                    </button>
+                </div>
             }
 
             <div class="web-player-diagnostic__utilities">
                 <button
                     class="web-player-diagnostic__utility-button"
                     type="button"
-                    [cdkCopyToClipboard]="resolvedPlayback().streamUrl"
-                    [matTooltip]="resolvedPlayback().streamUrl"
+                    [cdkCopyToClipboard]="externalStreamUrl()"
+                    [matTooltip]="externalStreamUrl()"
                     data-test-id="playback-copy-url"
                 >
                     <mat-icon aria-hidden="true">content_copy</mat-icon>

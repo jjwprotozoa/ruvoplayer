@@ -1,6 +1,10 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { DatabaseService, SettingsStore } from '@iptvnator/services';
+import {
+    DatabaseService,
+    RuntimeCapabilitiesService,
+    SettingsStore,
+} from '@iptvnator/services';
 import {
     XtreamSerieEpisode,
     XtreamVodDetails,
@@ -13,6 +17,11 @@ describe('XtreamUrlService', () => {
     let databaseService: {
         getAppState: jest.Mock<Promise<string | null>, [string]>;
         setAppState: jest.Mock<Promise<void>, [string, string]>;
+    };
+    let runtimeCapabilities: {
+        isElectron: boolean;
+        isPwa: boolean;
+        wrapStreamUrlForProxy: jest.Mock<string, [string, string?]>;
     };
 
     const credentials: XtreamCredentials = {
@@ -28,10 +37,20 @@ describe('XtreamUrlService', () => {
             setAppState: jest.fn().mockResolvedValue(undefined),
         };
 
+        runtimeCapabilities = {
+            isElectron: true,
+            isPwa: false,
+            wrapStreamUrlForProxy: jest.fn((url: string) => url),
+        };
+
         TestBed.configureTestingModule({
             providers: [
                 XtreamUrlService,
                 { provide: DatabaseService, useValue: databaseService },
+                {
+                    provide: RuntimeCapabilitiesService,
+                    useValue: runtimeCapabilities,
+                },
                 {
                     provide: SettingsStore,
                     useValue: {

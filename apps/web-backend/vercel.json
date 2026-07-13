@@ -1,16 +1,21 @@
 {
     "version": 2,
     "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+    "buildCommand": "cd ../.. && pnpm nx run web-backend:build:vercel && mkdir -p apps/web-backend/api && cp dist/apps/web-backend/vercel.cjs apps/web-backend/api/index.cjs",
     "builds": [
         {
-            "src": "src/vercel.ts",
-            "use": "@vercel/node"
+            "src": "api/index.cjs",
+            "use": "@vercel/node",
+            "config": {
+                "maxDuration": 300,
+                "includeFiles": ["api/index.cjs"]
+            }
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "src/vercel.ts"
+            "dest": "api/index.cjs"
         }
     ]
 }

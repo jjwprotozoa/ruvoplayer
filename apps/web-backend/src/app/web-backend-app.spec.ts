@@ -557,4 +557,116 @@ https://stream.example/news.m3u8`);
             }
         );
     });
+
+    describe('stream-proxy', () => {
+        it('rejects requests without url parameter', async () => {
+            const httpClient = new StubHttpClient();
+
+            await withServer(
+                createWebBackendApp({
+                    httpClient,
+                    resolveHostname: resolvePublicHost,
+                }),
+                async (baseUrl) => {
+                    const response = await fetch(`${baseUrl}/stream-proxy`);
+
+                    expect(response.status).toBe(400);
+                    await expect(response.json()).resolves.toEqual({
+                        message: 'Missing url parameter',
+                        status: 400,
+                    });
+                }
+            );
+        });
+
+        it('rejects invalid stream URLs', async () => {
+            const httpClient = new StubHttpClient();
+
+            await withServer(
+                createWebBackendApp({
+                    httpClient,
+                    resolveHostname: resolvePublicHost,
+                }),
+                async (baseUrl) => {
+                    const response = await fetch(
+                        `${baseUrl}/stream-proxy?url=${encodeURIComponent('not-a-url')}`
+                    );
+
+                    expect(response.status).toBe(400);
+                    await expect(response.json()).resolves.toEqual({
+                        message: 'Invalid stream URL',
+                        status: 400,
+                    });
+                }
+            );
+        });
+
+        it('rejects non-http/https stream URLs', async () => {
+            const httpClient = new StubHttpClient();
+
+            await withServer(
+                createWebBackendApp({
+                    httpClient,
+                    resolveHostname: resolvePublicHost,
+                }),
+                async (baseUrl) => {
+                    const response = await fetch(
+                        `${baseUrl}/stream-proxy?url=${encodeURIComponent('ftp://files.example/video.mp4')}`
+                    );
+
+                    expect(response.status).toBe(400);
+                    await expect(response.json()).resolves.toEqual({
+                        message: 'Only http and https stream URLs are supported',
+                        status: 400,
+                    });
+                }
+            );
+        });
+
+        it('rejects loopback stream URLs by default', async () => {
+            const httpClient = new StubHttpClient();
+
+            await withServer(
+                createWebBackendApp({
+                    httpClient,
+                    resolveHostname: resolvePublicHost,
+                }),
+                async (baseUrl) => {
+                    const response = await fetch(
+                        `${baseUrl}/stream-proxy?url=${encodeURIComponent('http://127.0.0.1:3211/video.mp4')}`
+                    );
+
+                    expect(response.status).toBe(400);
+                    await expect(response.json()).resolves.toEqual({
+                        message:
+                            'Provider URL points to a private or local network address',
+                        status: 400,
+                    });
+                }
+            );
+        });
+
+        it('rejects private network stream URLs by default', async () => {
+            const httpClient = new StubHttpClient();
+
+            await withServer(
+                createWebBackendApp({
+                    httpClient,
+                    resolveHostname: async () => ['192.168.1.100'],
+                }),
+                async (baseUrl) => {
+                    const response = await fetch(
+                        `${baseUrl}/stream-proxy?url=${encodeURIComponent('http://internal-server/video.mp4')}`
+                    );
+
+                    expect(response.status).toBe(400);
+                    await expect(response.json()).resolves.toEqual({
+                        message:
+                            'Provider URL points to a private or local network address',
+                        status: 400,
+                    });
+                }
+            );
+        });
+    });
 });

@@ -421,11 +421,13 @@
     "PLAYBACK_DIAGNOSTICS": {
         "UNSUPPORTED_CONTAINER": {
             "TITLE": "This stream container is likely unsupported by the browser player",
-            "DESCRIPTION": "The browser player may not decode this container inline. Copy the stream URL and open it in an external player such as MPV, VLC, or IINA for broader codec support."
+            "DESCRIPTION": "The browser player may not decode this container inline. Copy the stream URL and open it in an external player such as MPV, VLC, or IINA for broader codec support.",
+            "PWA_DESCRIPTION": "The browser player cannot play this container format (for example MKV, AVI, or WMV). Copy the stream URL and open it in VLC, IINA, or another player on your device."
         },
         "UNSUPPORTED_CODEC": {
             "TITLE": "This stream codec is likely unsupported by the browser player",
-            "DESCRIPTION": "The stream advertises codecs that the browser player may not decode. Copy the stream URL and open it in an external player such as MPV, VLC, or IINA."
+            "DESCRIPTION": "The stream advertises codecs that the browser player may not decode. Copy the stream URL and open it in an external player such as MPV, VLC, or IINA.",
+            "PWA_DESCRIPTION": "The browser player cannot decode the codecs in this stream. Copy the stream URL and open it in VLC, IINA, or another player on your device."
         },
         "MEDIA_DECODE_ERROR": {
             "TITLE": "The browser player could not decode this stream",
@@ -466,6 +468,7 @@
         "ACTION_OPEN_VLC": "Open in VLC",
         "ACTION_OPEN_MPV_HINT": "configured player",
         "ACTION_OPEN_VLC_HINT": "configured player",
+        "ACTION_OPEN_VLC_PWA_HINT": "opens VLC if installed",
         "ACTION_COPY_URL": "Copy stream URL",
         "ACTION_RETRY": "Retry",
         "DETAILS_SUMMARY": "Technical details",

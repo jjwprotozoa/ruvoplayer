@@ -374,6 +374,13 @@ To build the PWA bundle (as deployed to Vercel):
 $ pnpm nx build web --configuration=pwa
 ```
 
+The PWA backend API (`/parse`, `/xtream`, `/stream-proxy`, etc.) deploys from
+`apps/web-backend` to Vercel. See
+[`docs/architecture/ruvoplayer-api-vercel.md`](docs/architecture/ruvoplayer-api-vercel.md)
+for production deployment steps. The legacy standalone
+[`ruvoplayer-api`](https://github.com/jjwprotozoa/ruvoplayer-api) repository
+should be replaced by this monorepo deployment.
+
 ## Disclaimer
 
 **RuvoPlayer doesn't provide any playlists or other digital content.**

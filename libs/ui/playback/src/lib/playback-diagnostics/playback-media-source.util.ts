@@ -5,6 +5,13 @@ import type {
     PlaybackSourceMetadataInput,
 } from './playback-diagnostics.model';
 
+const EXTERNAL_PLAYER_ONLY_CONTAINER_EXTENSIONS = new Set([
+    'avi',
+    'flv',
+    'mkv',
+    'wmv',
+]);
+
 const UNSUPPORTED_CONTAINER_EXTENSIONS = new Set([
     'avi',
     'asf',
@@ -96,21 +103,25 @@ export function createPlaybackSourceMetadata(
 }
 
 export function getPlaybackMediaExtensionFromUrl(url: string): string {
+    const effectiveUrl = unwrapProxiedStreamUrl(url);
+
     const explicitQueryExtension = getMediaExtensionFromQuery(
-        url,
+        effectiveUrl,
         EXPLICIT_MEDIA_EXTENSION_QUERY_KEYS
     );
     if (explicitQueryExtension) {
         return explicitQueryExtension;
     }
 
-    const pathExtension = normalizeExtensionToken(getExtensionFromUrl(url));
+    const pathExtension = normalizeExtensionToken(
+        getExtensionFromUrl(effectiveUrl)
+    );
     if (DECLARED_MEDIA_EXTENSIONS.has(pathExtension)) {
         return pathExtension;
     }
 
     const formatQueryExtension = getMediaExtensionFromQuery(
-        url,
+        effectiveUrl,
         DECLARED_MEDIA_FORMAT_QUERY_KEYS
     );
     if (formatQueryExtension) {
@@ -122,6 +133,38 @@ export function getPlaybackMediaExtensionFromUrl(url: string): string {
     }
 
     return pathExtension;
+}
+
+export function unwrapProxiedStreamUrl(url: string): string {
+    try {
+        const parsedUrl = new URL(
+            url,
+            typeof globalThis.location?.origin === 'string'
+                ? globalThis.location.origin
+                : 'http://iptvnator.local'
+        );
+        const pathname = parsedUrl.pathname.replace(/\/+$/, '').toLowerCase();
+
+        if (
+            pathname.endsWith('/stream-proxy') ||
+            pathname.endsWith('/api/stream-proxy')
+        ) {
+            const embeddedUrl =
+                parsedUrl.searchParams.get('url') ??
+                parsedUrl.searchParams.get('streamUrl');
+            if (embeddedUrl) {
+                return embeddedUrl;
+            }
+        }
+    } catch {
+        // Fall back to the original URL when parsing fails.
+    }
+
+    return url;
+}
+
+export function buildVlcLaunchUrl(streamUrl: string): string {
+    return `vlc://${streamUrl}`;
 }
 
 export function getLikelyBrowserUnsupportedCodecLabels(
@@ -153,6 +196,13 @@ export function isBrowserInlineUnsupportedContainerExtension(
     return UNSUPPORTED_CONTAINER_EXTENSIONS.has(
         extension.trim().toLowerCase()
     );
+}
+
+export function isExternalPlayerOnlyStreamUrl(url: string): boolean {
+    const extension = getPlaybackMediaExtensionFromUrl(url);
+    return extension
+        ? EXTERNAL_PLAYER_ONLY_CONTAINER_EXTENSIONS.has(extension)
+        : false;
 }
 
 export function isBrowserInlineUnsupportedStreamUrl(url: string): boolean {

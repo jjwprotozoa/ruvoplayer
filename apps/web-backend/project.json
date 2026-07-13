@@ -18,6 +18,12 @@
                 "bundle": true,
                 "thirdParty": true,
                 "generatePackageJson": true
+            },
+            "configurations": {
+                "vercel": {
+                    "main": "apps/web-backend/src/vercel.ts",
+                    "outputFileName": "vercel.cjs"
+                }
             }
         },
         "serve": {

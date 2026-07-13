@@ -1,6 +1,19 @@
 import { DBConfig, ObjectStoreSchema } from 'ngx-indexed-db';
 
 /**
+ * Minimal IndexedDB store interface for index management.
+ * Used instead of IDBObjectStore to support Node.js builds.
+ */
+interface IndexedDbStoreLike {
+    readonly indexNames: { contains(name: string): boolean };
+    createIndex(
+        name: string,
+        keyPath: string | string[],
+        options?: { unique?: boolean; multiEntry?: boolean }
+    ): unknown;
+}
+
+/**
  * Contains names of the database stores
  */
 export enum DbStores {
@@ -70,7 +83,7 @@ const playlistsStoreSchema: ObjectStoreSchema[] = [
 ];
 
 export function ensurePlaylistsStoreIndexes(
-    store: Pick<IDBObjectStore, 'indexNames' | 'createIndex'>,
+    store: IndexedDbStoreLike,
     storeSchema: ObjectStoreSchema[] = playlistsStoreSchema
 ): void {
     for (const schema of storeSchema) {

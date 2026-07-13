@@ -288,9 +288,17 @@ export class VjsPlayerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     private isMpegTsSource(url?: string): boolean {
-        if (!url) return false;
+        if (!url || !mpegts.isSupported()) {
+            return false;
+        }
+
         const extension = getPlaybackMediaExtensionFromUrl(url);
-        return (extension === 'ts' || !extension) && mpegts.isSupported();
+        if (extension === 'ts') {
+            return true;
+        }
+
+        // Only fall back to mpegts.js for extensionless gateway URLs.
+        return extension.length === 0;
     }
 
     private hasPlaybackInputChanged(

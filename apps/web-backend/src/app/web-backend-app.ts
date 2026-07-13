@@ -1,5 +1,7 @@
 import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
+import http from 'node:http';
+import https from 'node:https';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import zlib from 'node:zlib';
@@ -83,7 +85,22 @@ export function createWebBackendApp(
         optionsSuccessStatus: 200,
     });
 
-    app.get('/', (_req, res) => res.send('IPTVnator web backend'));
+    app.get('/', (_req, res) => {
+        res.json({
+            status: 'ok',
+            service: 'ruvoplayer-api',
+            endpoints: {
+                health: '/health',
+                config: '/config.js',
+                providerTargets: 'POST /provider-targets',
+                parse: '/parse?targetId=<id>',
+                xtream:
+                    '/xtream?targetId=<id>&username=<u>&password=<p>&action=<action>',
+                stalker: '/stalker?targetId=<id>&macAddress=<mac>&action=<action>',
+                streamProxy: '/stream-proxy?url=<encoded-stream-url>',
+            },
+        });
+    });
     app.get('/health', (_req, res) =>
         res.json({ status: 'ok', service: 'iptvnator-web-backend' })
     );
@@ -237,6 +254,49 @@ export function createWebBackendApp(
         }
     });
 
+    app.options('/stream-proxy', corsMiddleware);
+    app.get('/stream-proxy', corsMiddleware, async (req, res) => {
+        const streamUrl =
+            getQueryString(req, 'url') ?? getQueryString(req, 'streamUrl');
+        if (!streamUrl) {
+            res.status(400).json({
+                message: 'Missing url parameter',
+                status: 400,
+            });
+            return;
+        }
+
+        let targetUrl: URL;
+        try {
+            targetUrl = new URL(streamUrl);
+        } catch {
+            res.status(400).json({
+                message: 'Invalid stream URL',
+                status: 400,
+            });
+            return;
+        }
+
+        if (targetUrl.protocol !== 'http:' && targetUrl.protocol !== 'https:') {
+            res.status(400).json({
+                message: 'Only http and https stream URLs are supported',
+                status: 400,
+            });
+            return;
+        }
+
+        const validationResult = await validateProviderUrl(
+            streamUrl,
+            providerUrlPolicy
+        );
+        if ('message' in validationResult) {
+            res.status(validationResult.status).json(validationResult);
+            return;
+        }
+
+        handleStreamProxy(req, res, targetUrl);
+    });
+
     return app;
 }
 
@@ -371,7 +431,10 @@ function getClientOrigins(): string[] {
     return process.env['NODE_ENV'] === 'development' ||
         process.env['NODE_ENV'] === 'dev'
         ? ['http://localhost:4200']
-        : ['https://iptvnator.vercel.app'];
+        : [
+              'https://ruvoplayer.vercel.app',
+              'http://localhost:4200',
+          ];
 }
 
 function getQueryString(req: Request, key: string): string | undefined {
@@ -625,4 +688,147 @@ function isPrivateOrReservedIpv6(address: string): boolean {
 
     const mappedIpv4 = normalized.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/)?.[1];
     return mappedIpv4 ? isPrivateOrReservedIpv4(mappedIpv4) : false;
+}
+
+const STREAM_PROXY_MAX_REDIRECTS = 5;
+
+function handleStreamProxy(
+    req: Request,
+    res: Response,
+    targetUrl: URL,
+    redirectCount = 0
+): void {
+    if (redirectCount > STREAM_PROXY_MAX_REDIRECTS) {
+        res.status(508).json({
+            status: 'error',
+            message: 'Too many redirects while fetching stream',
+        });
+        return;
+    }
+
+    const isHead = req.method === 'HEAD';
+    const httpModule = targetUrl.protocol === 'https:' ? https : http;
+
+    const headers: Record<string, string> = {
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+            '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'identity',
+        Connection: 'keep-alive',
+        'Sec-Fetch-Dest': 'video',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site',
+        Referer: targetUrl.origin,
+    };
+
+    if (req.headers.range) {
+        headers['Range'] = req.headers.range as string;
+    }
+    if (req.headers.authorization) {
+        headers['Authorization'] = req.headers.authorization;
+    }
+
+    // Provider URLs are validated by validateProviderUrl before streaming.
+    // codeql[js/request-forgery]
+    const request = httpModule.request(
+        targetUrl.href,
+        {
+            method: isHead ? 'HEAD' : 'GET',
+            headers,
+            timeout: 60000,
+        },
+        (upstream) => {
+            if (
+                upstream.statusCode &&
+                upstream.statusCode >= 300 &&
+                upstream.statusCode < 400 &&
+                upstream.headers.location
+            ) {
+                upstream.resume();
+                try {
+                    const nextUrl = new URL(
+                        upstream.headers.location,
+                        targetUrl.href
+                    );
+                    handleStreamProxy(req, res, nextUrl, redirectCount + 1);
+                } catch {
+                    res.status(400).json({
+                        status: 'error',
+                        message: 'Invalid redirect location from stream server',
+                    });
+                }
+                return;
+            }
+
+            if (upstream.statusCode !== 200 && upstream.statusCode !== 206) {
+                res.status(upstream.statusCode || 500).json({
+                    status: 'error',
+                    message: `Stream server responded with status ${upstream.statusCode}`,
+                });
+                return;
+            }
+
+            const contentType =
+                upstream.headers['content-type'] || 'application/octet-stream';
+            const contentLength = upstream.headers['content-length'];
+            const acceptRanges = upstream.headers['accept-ranges'] || 'bytes';
+            const contentRange = upstream.headers['content-range'];
+
+            res.setHeader('Content-Type', contentType);
+            if (contentLength) {
+                res.setHeader('Content-Length', contentLength);
+            }
+            if (acceptRanges) {
+                res.setHeader('Accept-Ranges', acceptRanges);
+            }
+            if (contentRange) {
+                res.setHeader('Content-Range', contentRange);
+            }
+            res.setHeader('Cache-Control', 'no-store');
+
+            res.status(upstream.statusCode);
+            if (isHead) {
+                res.end();
+                return;
+            }
+
+            upstream.on('error', () => {
+                if (!res.headersSent) {
+                    res.status(500).json({
+                        status: 'error',
+                        message: 'Upstream stream error',
+                    });
+                }
+            });
+
+            upstream.pipe(res);
+        }
+    );
+
+    request.on('error', (e) => {
+        if (!res.headersSent) {
+            res.status(500).json({
+                status: 'error',
+                message: `Failed to connect to stream: ${e.message}`,
+            });
+        }
+    });
+
+    request.on('timeout', () => {
+        try {
+            request.destroy();
+        } catch {
+            // Ignore destroy errors
+        }
+        if (!res.headersSent) {
+            res.status(408).json({
+                status: 'error',
+                message: 'Stream request timeout',
+            });
+        }
+    });
+
+    request.end();
 }

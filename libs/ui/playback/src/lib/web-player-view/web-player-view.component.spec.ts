@@ -100,7 +100,10 @@ describe('WebPlayerViewComponent', () => {
     const storageMap = {
         get: jest.fn(() => of({ player: VideoPlayer.VideoJs })),
     };
-    let runtimeCapabilities: { supportsManagedExternalPlayers: boolean };
+    let runtimeCapabilities: {
+        supportsManagedExternalPlayers: boolean;
+        isPwa: boolean;
+    };
 
     beforeAll(async () => {
         ({ WebPlayerViewComponent } =
@@ -108,7 +111,10 @@ describe('WebPlayerViewComponent', () => {
     });
 
     beforeEach(async () => {
-        runtimeCapabilities = { supportsManagedExternalPlayers: false };
+        runtimeCapabilities = {
+            supportsManagedExternalPlayers: false,
+            isPwa: true,
+        };
 
         await TestBed.configureTestingModule({
             // @defer blocks render their main content synchronously in tests.
@@ -144,9 +150,9 @@ describe('WebPlayerViewComponent', () => {
         component = fixture.componentInstance;
         fixture.componentRef.setInput(
             'streamUrl',
-            'https://example.com/archive/movie.mkv'
+            'https://example.com/live/index.m3u8'
         );
-        fixture.componentRef.setInput('title', 'Example Movie');
+        fixture.componentRef.setInput('title', 'Example Channel');
     });
 
     afterEach(() => {
@@ -166,6 +172,11 @@ describe('WebPlayerViewComponent', () => {
             requests.push(request)
         );
 
+        fixture.componentRef.setInput(
+            'streamUrl',
+            'https://example.com/archive/movie.mkv'
+        );
+        fixture.componentRef.setInput('title', 'Example Movie');
         fixture.detectChanges();
         component.handlePlaybackIssue(createUnsupportedContainerDiagnostic());
         fixture.detectChanges();
@@ -224,6 +235,54 @@ describe('WebPlayerViewComponent', () => {
                 type: 'video/x-matroska',
             },
         ]);
+    });
+
+    it('maps proxied mkv streams to matroska mime types for Video.js', () => {
+        const rawUrl = 'https://example.com/archive/movie.mkv';
+        const streamUrl =
+            '/api/stream-proxy?url=' + encodeURIComponent(rawUrl);
+
+        component.setVjsOptions(streamUrl);
+
+        expect(component.vjsOptions.sources).toEqual([
+            {
+                src: streamUrl,
+                type: 'video/x-matroska',
+            },
+        ]);
+    });
+
+    it('renders a PWA VLC fallback action for the original stream URL', () => {
+        const rawUrl = 'https://example.com/archive/movie.mkv';
+        const streamUrl =
+            '/api/stream-proxy?url=' + encodeURIComponent(rawUrl);
+
+        fixture.componentRef.setInput('streamUrl', streamUrl);
+        fixture.detectChanges();
+        component.handlePlaybackIssue(createUnsupportedContainerDiagnostic());
+        fixture.detectChanges();
+
+        const vlcButton = fixture.debugElement.query(
+            By.css('[data-test-id="playback-fallback-vlc"]')
+        );
+
+        expect(vlcButton).not.toBeNull();
+        expect(component.externalStreamUrl()).toBe(rawUrl);
+        expect(component.canShowPwaExternalPlayerActions()).toBe(true);
+    });
+
+    it('shows preemptive MKV diagnostics in PWA without loading inline sources', () => {
+        fixture.componentRef.setInput(
+            'streamUrl',
+            'http://ruvoplay.org/movie/user/pass/1977622.mkv'
+        );
+        fixture.detectChanges();
+
+        expect(component.playbackDiagnostic()?.code).toBe(
+            PlaybackDiagnosticCode.UnsupportedContainer
+        );
+        expect(component.vjsOptions.sources).toEqual([]);
+        expect(component.canShowPwaExternalPlayerActions()).toBe(true);
     });
 
     it('treats web script playback URLs without declared media extension as MPEG-TS', () => {

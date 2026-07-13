@@ -421,11 +421,13 @@
     "PLAYBACK_DIAGNOSTICS": {
         "UNSUPPORTED_CONTAINER": {
             "TITLE": "Контейнер потока, вероятно, не поддерживается встроенным браузерным плеером",
-            "DESCRIPTION": "Браузерный плеер может не декодировать этот контейнер внутри приложения. Скопируйте URL потока и откройте его во внешнем плеере, например MPV, VLC или IINA."
+            "DESCRIPTION": "Браузерный плеер может не декодировать этот контейнер внутри приложения. Скопируйте URL потока и откройте его во внешнем плеере, например MPV, VLC или IINA.",
+            "PWA_DESCRIPTION": "The browser player cannot play this container format (for example MKV, AVI, or WMV). Copy the stream URL and open it in VLC, IINA, or another player on your device."
         },
         "UNSUPPORTED_CODEC": {
             "TITLE": "Кодек потока, вероятно, не поддерживается встроенным браузерным плеером",
-            "DESCRIPTION": "Поток сообщает кодеки, которые браузерный плеер может не декодировать. Скопируйте URL потока и откройте его во внешнем плеере, например MPV, VLC или IINA."
+            "DESCRIPTION": "Поток сообщает кодеки, которые браузерный плеер может не декодировать. Скопируйте URL потока и откройте его во внешнем плеере, например MPV, VLC или IINA.",
+            "PWA_DESCRIPTION": "The browser player cannot decode the codecs in this stream. Copy the stream URL and open it in VLC, IINA, or another player on your device."
         },
         "MEDIA_DECODE_ERROR": {
             "TITLE": "Браузерный плеер не смог декодировать этот поток",

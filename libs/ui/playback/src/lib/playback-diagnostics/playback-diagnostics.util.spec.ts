@@ -1,12 +1,15 @@
 import {
     PlaybackDiagnosticCode,
+    buildVlcLaunchUrl,
     classifyHlsPlaybackIssue,
     classifyMpegTsPlaybackIssue,
     classifyNativePlaybackIssue,
+    classifyPreemptivePlaybackIssue,
     createPlaybackSourceMetadata,
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
     isBrowserInlineUnsupportedStreamUrl,
+    isMixedContentStreamUrl,
     resolvePlaybackMimeType,
 } from './playback-diagnostics.util';
 
@@ -481,5 +484,62 @@ describe('playback diagnostics', () => {
                 'http://ruvoplay.org/movie/user/pass/1977622.mkv'
             )
         ).toBe(true);
+    });
+
+    it('extracts media extensions from proxied stream URLs', () => {
+        const proxiedMkv =
+            '/api/stream-proxy?url=' +
+            encodeURIComponent(
+                'http://ruvoplay.org/movie/user/pass/1977622.mkv'
+            );
+        const proxiedTs =
+            '/api/stream-proxy?url=' +
+            encodeURIComponent('http://ruvoplay.org/live/user/pass/101.ts');
+
+        expect(getPlaybackMediaExtensionFromUrl(proxiedMkv)).toBe('mkv');
+        expect(getPlaybackMediaExtensionFromUrl(proxiedTs)).toBe('ts');
+        expect(resolvePlaybackMimeType(getPlaybackMediaExtensionFromUrl(proxiedMkv))).toBe(
+            'video/x-matroska'
+        );
+    });
+
+    it('builds vlc launch URLs from raw stream URLs', () => {
+        expect(
+            buildVlcLaunchUrl('http://ruvoplay.org/live/user/pass/101.ts')
+        ).toBe('vlc://http://ruvoplay.org/live/user/pass/101.ts');
+    });
+
+    it('detects mixed-content HTTP streams on HTTPS pages', () => {
+        expect(
+            isMixedContentStreamUrl(
+                'http://provider.example/live.m3u8',
+                'https:'
+            )
+        ).toBe(true);
+        expect(
+            isMixedContentStreamUrl(
+                '/api/stream-proxy?url=' +
+                    encodeURIComponent('http://provider.example/live.m3u8'),
+                'https:'
+            )
+        ).toBe(false);
+        expect(
+            isMixedContentStreamUrl(
+                'http://provider.example/live.m3u8',
+                'http:'
+            )
+        ).toBe(false);
+    });
+
+    it('classifies preemptive MKV playback issues', () => {
+        const mkvIssue = classifyPreemptivePlaybackIssue(
+            'http://ruvoplay.org/movie/user/pass/1977622.mkv',
+            'videojs'
+        );
+
+        expect(mkvIssue?.code).toBe(
+            PlaybackDiagnosticCode.UnsupportedContainer
+        );
+        expect(mkvIssue?.externalFallbackRecommended).toBe(true);
     });
 });

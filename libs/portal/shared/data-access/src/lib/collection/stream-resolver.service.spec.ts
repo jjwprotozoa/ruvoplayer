@@ -9,6 +9,7 @@ import { EpgRuntimeBridgeService } from '@iptvnator/epg/data-access';
 import {
     DataService,
     PlaylistsService,
+    RuntimeCapabilitiesService,
 } from '@iptvnator/services';
 import { Playlist } from '@iptvnator/shared/interfaces';
 import { UnifiedCollectionItem } from '@iptvnator/portal/shared/util';
@@ -25,6 +26,7 @@ describe('StreamResolverService', () => {
     let dataService: { sendIpcEvent: jest.Mock };
     let stalkerSession: { makeAuthenticatedRequest: jest.Mock };
     let epgBridge: Partial<EpgRuntimeBridgeService>;
+    let runtime: { wrapStreamUrlForProxy: jest.Mock };
 
     beforeEach(() => {
         playlistsService = {
@@ -42,6 +44,9 @@ describe('StreamResolverService', () => {
         stalkerSession = {
             makeAuthenticatedRequest: jest.fn(),
         };
+        runtime = {
+            wrapStreamUrlForProxy: jest.fn((url: string) => url),
+        };
         epgBridge = {
             getChannelPrograms: jest.fn(),
             supportsProgramLookup: true,
@@ -58,7 +63,14 @@ describe('StreamResolverService', () => {
                     provide: EpgRuntimeBridgeService,
                     useValue: epgBridge,
                 },
-                { provide: StalkerSessionService, useValue: stalkerSession },
+                {
+                    provide: StalkerSessionService,
+                    useValue: stalkerSession,
+                },
+                {
+                    provide: RuntimeCapabilitiesService,
+                    useValue: runtime,
+                },
             ],
         });
 
@@ -598,6 +610,59 @@ describe('StreamResolverService', () => {
                     origin: 'https://origin.example.com',
                 }),
             })
+        );
+    });
+
+    it('wraps M3U playback URLs through the PWA stream proxy', async () => {
+        runtime.wrapStreamUrlForProxy.mockImplementation(
+            (url: string) =>
+                `/api/stream-proxy?url=${encodeURIComponent(url)}`
+        );
+        playlistsService.getPlaylistById.mockReturnValue(
+            of({
+                _id: 'm3u-1',
+                playlist: {
+                    items: [
+                        {
+                            id: 'channel-1',
+                            name: 'News',
+                            url: 'http://provider.example/live.m3u8',
+                            group: { title: 'News' },
+                            tvg: {
+                                id: 'news-id',
+                                name: 'News',
+                                url: '',
+                                logo: 'news.png',
+                                rec: '',
+                            },
+                            http: {},
+                            radio: 'false',
+                            epgParams: '',
+                        },
+                    ],
+                },
+            } satisfies Partial<Playlist>)
+        );
+
+        const detail = await service.resolveM3uPlaybackDetail({
+            uid: 'm3u::m3u-1::http://provider.example/live.m3u8',
+            name: 'News',
+            contentType: 'live',
+            sourceType: 'm3u',
+            playlistId: 'm3u-1',
+            playlistName: 'M3U List',
+            streamUrl: 'http://provider.example/live.m3u8',
+            channelId: 'channel-1',
+            tvgId: 'news-id',
+            logo: 'news.png',
+        } satisfies UnifiedCollectionItem);
+
+        expect(runtime.wrapStreamUrlForProxy).toHaveBeenCalledWith(
+            'http://provider.example/live.m3u8'
+        );
+        expect(detail.playback.streamUrl).toBe(
+            '/api/stream-proxy?url=' +
+                encodeURIComponent('http://provider.example/live.m3u8')
         );
     });
 });
