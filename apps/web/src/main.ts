@@ -2,8 +2,17 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { registerAppDateLocales } from './app/app-date-locales';
 import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
+import { AppConfig } from './environments/environment';
 
 registerAppDateLocales();
+
+const runtimeConfig = (globalThis.window?.__IPTVNATOR_CONFIG__ ??= {});
+if (!runtimeConfig.BACKEND_URL?.trim()) {
+    runtimeConfig.BACKEND_URL = AppConfig.BACKEND_URL;
+}
+if (!runtimeConfig.BACKEND_URL_BACKUP?.trim() && AppConfig.BACKEND_URL_BACKUP) {
+    runtimeConfig.BACKEND_URL_BACKUP = AppConfig.BACKEND_URL_BACKUP;
+}
 
 bootstrapApplication(AppComponent, appConfig)
     .then(() => {

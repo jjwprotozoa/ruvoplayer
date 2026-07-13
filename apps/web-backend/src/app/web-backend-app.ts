@@ -770,8 +770,10 @@ function handleStreamProxy(
                 return;
             }
 
-            const contentType =
-                upstream.headers['content-type'] || 'application/octet-stream';
+            const contentType = resolveStreamProxyContentType(
+                targetUrl,
+                upstream.headers['content-type']
+            );
             const contentLength = upstream.headers['content-length'];
             const acceptRanges = upstream.headers['accept-ranges'] || 'bytes';
             const contentRange = upstream.headers['content-range'];
@@ -831,4 +833,45 @@ function handleStreamProxy(
     });
 
     request.end();
+}
+
+function resolveStreamProxyContentType(
+    targetUrl: URL,
+    upstreamContentType: string | string[] | undefined
+): string {
+    const rawType = Array.isArray(upstreamContentType)
+        ? upstreamContentType[0]
+        : upstreamContentType;
+    const normalizedType = rawType?.split(';')[0]?.trim().toLowerCase();
+
+    if (
+        normalizedType &&
+        normalizedType !== 'application/octet-stream' &&
+        normalizedType !== 'binary/octet-stream'
+    ) {
+        return normalizedType;
+    }
+
+    const extension = targetUrl.pathname
+        .split('/')
+        .pop()
+        ?.split('.')
+        .pop()
+        ?.toLowerCase();
+
+    switch (extension) {
+        case 'mkv':
+            return 'video/x-matroska';
+        case 'mp4':
+        case 'm4v':
+            return 'video/mp4';
+        case 'webm':
+            return 'video/webm';
+        case 'ts':
+            return 'video/mp2t';
+        case 'm3u8':
+            return 'application/vnd.apple.mpegurl';
+        default:
+            return normalizedType || 'application/octet-stream';
+    }
 }
