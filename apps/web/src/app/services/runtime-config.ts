@@ -66,6 +66,13 @@ export function getRuntimeDesktopReleasesFallbackRepo(): string | undefined {
     return primaryRepo === '4gray/iptvnator' ? undefined : '4gray/iptvnator';
 }
 
+export function getRuntimeDesktopReleasesFallbackUrl(): string | undefined {
+    const fallbackRepo = getRuntimeDesktopReleasesFallbackRepo();
+    return fallbackRepo
+        ? `https://github.com/${fallbackRepo}/releases/latest`
+        : undefined;
+}
+
 export interface ServiceWorkerRuntimeContext {
     readonly electronBridge?: unknown;
     readonly protocol?: string;

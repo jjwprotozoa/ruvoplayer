@@ -3,6 +3,7 @@ import {
     buildStaticDesktopDownloadCards,
     describeDesktopReleaseAsset,
     mergeCommonDesktopReleaseAssets,
+    partitionCommonDesktopReleaseAssets,
     pickCommonDesktopReleaseAssets,
 } from './desktop-release-assets.util';
 
@@ -179,7 +180,7 @@ describe('desktop-release-assets.util', () => {
     });
 
     it('fills missing common slots from upstream fallback assets', () => {
-        const merged = mergeCommonDesktopReleaseAssets(
+        const partitioned = partitionCommonDesktopReleaseAssets(
             pickCommonDesktopReleaseAssets([
                 {
                     name: 'RuvoPlayer-0.22.0-mac-arm64.dmg',
@@ -201,16 +202,46 @@ describe('desktop-release-assets.util', () => {
             ])
         );
 
-        expect(merged.map((asset) => asset.slotKey)).toEqual([
+        expect(partitioned.primary.map((asset) => asset.slotKey)).toEqual([
             'mac-arm64',
-            'windows-quick',
-            'linux',
         ]);
-        expect(merged.find((asset) => asset.slotKey === 'windows-quick')).toEqual(
+        expect(partitioned.upstream.map((asset) => asset.slotKey)).toEqual([
+            'upstream-windows-quick',
+            'upstream-linux',
+        ]);
+        expect(
+            partitioned.upstream.find(
+                (asset) => asset.slotKey === 'upstream-windows-quick'
+            )
+        ).toEqual(
             expect.objectContaining({
                 isUpstreamFallback: true,
                 sublabel: expect.stringContaining('IPTVnator upstream'),
             })
         );
+    });
+
+    it('keeps merge helper behavior for legacy callers', () => {
+        const merged = mergeCommonDesktopReleaseAssets(
+            pickCommonDesktopReleaseAssets([
+                {
+                    name: 'RuvoPlayer-0.22.0-mac-arm64.dmg',
+                    browser_download_url: 'https://example.com/ruvo-mac',
+                    size: 1,
+                },
+            ]),
+            pickCommonDesktopReleaseAssets([
+                {
+                    name: 'iptvnator-0.21.0-windows-x64-setup.exe',
+                    browser_download_url: 'https://example.com/windows',
+                    size: 1,
+                },
+            ])
+        );
+
+        expect(merged.map((asset) => asset.slotKey)).toEqual([
+            'mac-arm64',
+            'upstream-windows-quick',
+        ]);
     });
 });

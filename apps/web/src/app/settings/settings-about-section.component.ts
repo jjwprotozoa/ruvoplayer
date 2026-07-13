@@ -15,6 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { catchError, map, of, switchMap } from 'rxjs';
 import {
     getRuntimeDesktopReleasesFallbackRepo,
+    getRuntimeDesktopReleasesFallbackUrl,
     getRuntimeGithubRepo,
 } from '../services/runtime-config';
 import {
@@ -23,7 +24,8 @@ import {
     buildGitHubLatestReleaseApiUrl,
     buildMobileWebAppDownload,
     buildStaticDesktopDownloadCards,
-    mergeCommonDesktopReleaseAssets,
+    markUpstreamDesktopReleaseAssets,
+    partitionCommonDesktopReleaseAssets,
     pickCommonDesktopReleaseAssets,
 } from './desktop-release-assets.util';
 
@@ -50,21 +52,27 @@ export class SettingsAboutSectionComponent {
     readonly desktopReleasesUrl = input.required<string>();
     readonly githubProjectUrl = input.required<string>();
 
-    readonly desktopDownloads = signal<DesktopReleaseAssetView[]>([]);
+    readonly desktopPrimaryDownloads = signal<DesktopReleaseAssetView[]>([]);
+    readonly desktopUpstreamDownloads = signal<DesktopReleaseAssetView[]>([]);
+    readonly desktopDownloadsLoaded = signal(false);
     readonly desktopDownloadsLoading = signal(false);
     readonly desktopDownloadsFailed = signal(false);
+    readonly desktopUpstreamReleasesUrl = computed(
+        () => getRuntimeDesktopReleasesFallbackUrl() ?? ''
+    );
     readonly mobileWebAppDownload = computed(() =>
         buildMobileWebAppDownload(this.resolveMobileWebAppUrl())
     );
-    readonly visibleDesktopDownloads = computed(() => {
-        const loaded = this.desktopDownloads();
-        const cards =
-            loaded.length > 0
-                ? loaded
-                : buildStaticDesktopDownloadCards(this.desktopReleasesUrl());
+    readonly visiblePrimaryDownloads = computed(() => {
+        if (!this.desktopDownloadsLoaded()) {
+            return buildStaticDesktopDownloadCards(this.desktopReleasesUrl());
+        }
 
-        return [...cards, this.mobileWebAppDownload()];
+        return this.desktopPrimaryDownloads();
     });
+    readonly visibleUpstreamDownloads = computed(() =>
+        this.desktopUpstreamDownloads()
+    );
 
     private desktopDownloadsRequested = false;
 
@@ -88,6 +96,7 @@ export class SettingsAboutSectionComponent {
         this.desktopDownloadsRequested = true;
         this.desktopDownloadsLoading.set(true);
         this.desktopDownloadsFailed.set(false);
+        this.desktopDownloadsLoaded.set(false);
 
         const primaryRepo = getRuntimeGithubRepo();
         const fallbackRepo = getRuntimeDesktopReleasesFallbackRepo();
@@ -103,7 +112,9 @@ export class SettingsAboutSectionComponent {
                     );
 
                     if (!fallbackRepo) {
-                        return of(primaryAssets);
+                        return of(
+                            partitionCommonDesktopReleaseAssets(primaryAssets, [])
+                        );
                     }
 
                     return this.http
@@ -112,19 +123,29 @@ export class SettingsAboutSectionComponent {
                         )
                         .pipe(
                             map((fallbackRelease) =>
-                                mergeCommonDesktopReleaseAssets(
+                                partitionCommonDesktopReleaseAssets(
                                     primaryAssets,
                                     pickCommonDesktopReleaseAssets(
                                         fallbackRelease.assets ?? []
                                     )
                                 )
                             ),
-                            catchError(() => of(primaryAssets))
+                            catchError(() =>
+                                of(
+                                    partitionCommonDesktopReleaseAssets(
+                                        primaryAssets,
+                                        []
+                                    )
+                                )
+                            )
                         );
                 }),
                 catchError(() => {
                     if (!fallbackRepo) {
-                        return of([] as DesktopReleaseAssetView[]);
+                        return of({
+                            primary: [] as DesktopReleaseAssetView[],
+                            upstream: [] as DesktopReleaseAssetView[],
+                        });
                     }
 
                     return this.http
@@ -132,33 +153,38 @@ export class SettingsAboutSectionComponent {
                             buildGitHubLatestReleaseApiUrl(fallbackRepo)
                         )
                         .pipe(
-                            map((fallbackRelease) =>
-                                pickCommonDesktopReleaseAssets(
-                                    fallbackRelease.assets ?? []
-                                ).map((asset) => ({
-                                    ...asset,
-                                    isUpstreamFallback: true,
-                                    sublabel: asset.sublabel.includes(
-                                        'IPTVnator upstream'
+                            map((fallbackRelease) => ({
+                                primary: [] as DesktopReleaseAssetView[],
+                                upstream: markUpstreamDesktopReleaseAssets(
+                                    pickCommonDesktopReleaseAssets(
+                                        fallbackRelease.assets ?? []
                                     )
-                                        ? asset.sublabel
-                                        : `${asset.sublabel}${asset.sublabel ? ' · ' : ''}IPTVnator upstream`,
-                                }))
-                            ),
-                            catchError(() => of([] as DesktopReleaseAssetView[]))
+                                ),
+                            })),
+                            catchError(() =>
+                                of({
+                                    primary: [] as DesktopReleaseAssetView[],
+                                    upstream: [] as DesktopReleaseAssetView[],
+                                })
+                            )
                         );
                 }),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
-                next: (downloads) => {
-                    this.desktopDownloads.set(downloads);
+                next: ({ primary, upstream }) => {
+                    this.desktopPrimaryDownloads.set(primary);
+                    this.desktopUpstreamDownloads.set(upstream);
+                    this.desktopDownloadsLoaded.set(true);
                     this.desktopDownloadsLoading.set(false);
-                    this.desktopDownloadsFailed.set(downloads.length === 0);
+                    this.desktopDownloadsFailed.set(
+                        primary.length === 0 && upstream.length === 0
+                    );
                 },
                 error: () => {
                     this.desktopDownloadsFailed.set(true);
                     this.desktopDownloadsLoading.set(false);
+                    this.desktopDownloadsLoaded.set(true);
                 },
             });
     }

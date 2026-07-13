@@ -123,19 +123,28 @@ describe('SettingsAboutSectionComponent', () => {
             '[data-test-id="link-desktop-download-mac-arm64"]'
         ) as HTMLAnchorElement | null;
         const windowsQuickLink = fixture.nativeElement.querySelector(
-            '[data-test-id="link-desktop-download-windows-quick"]'
+            '[data-test-id="link-desktop-download-upstream-windows-quick"]'
         ) as HTMLAnchorElement | null;
         const windowsCustomLink = fixture.nativeElement.querySelector(
-            '[data-test-id="link-desktop-download-windows-custom"]'
+            '[data-test-id="link-desktop-download-upstream-windows-custom"]'
         ) as HTMLAnchorElement | null;
+        const upstreamSection = fixture.nativeElement.querySelector(
+            '.desktop-downloads__group--upstream'
+        );
 
         expect(macLink).toBeTruthy();
         expect(macLink?.textContent).toContain('macOS (Apple Silicon)');
+        expect(upstreamSection).toBeTruthy();
         expect(windowsQuickLink).toBeTruthy();
         expect(windowsQuickLink?.textContent).toContain('Windows (Quick install)');
         expect(windowsQuickLink?.textContent).toContain('IPTVnator upstream');
         expect(windowsCustomLink).toBeTruthy();
         expect(windowsCustomLink?.textContent).toContain('Windows (Choose location)');
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-upstream-releases"]'
+            )
+        ).toBeTruthy();
     });
 
     it('keeps static desktop cards when release assets are unavailable', () => {
@@ -163,6 +172,11 @@ describe('SettingsAboutSectionComponent', () => {
                 '[data-test-id="link-desktop-download-windows-custom-static"]'
             )
         ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '.desktop-downloads__group--upstream'
+            )
+        ).toBeNull();
         expect(
             fixture.nativeElement.querySelector(
                 '[data-test-id="link-desktop-download-mobile-web"]'

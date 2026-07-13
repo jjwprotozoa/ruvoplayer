@@ -300,27 +300,57 @@ export function pickCommonDesktopReleaseAssets(
     return picked.sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
+export function markUpstreamDesktopReleaseAssets(
+    assets: readonly DesktopReleaseAssetView[]
+): DesktopReleaseAssetView[] {
+    return assets.map((asset) => ({
+        ...asset,
+        slotKey: `upstream-${asset.slotKey}`,
+        isUpstreamFallback: true,
+        sublabel: asset.sublabel.includes('IPTVnator upstream')
+            ? asset.sublabel
+            : `${asset.sublabel}${asset.sublabel ? ' · ' : ''}IPTVnator upstream`,
+    }));
+}
+
+export function partitionCommonDesktopReleaseAssets(
+    primary: readonly DesktopReleaseAssetView[],
+    fallback: readonly DesktopReleaseAssetView[]
+): {
+    readonly primary: DesktopReleaseAssetView[];
+    readonly upstream: DesktopReleaseAssetView[];
+} {
+    const primarySlots = new Set(primary.map((asset) => asset.slotKey));
+    const upstream = markUpstreamDesktopReleaseAssets(
+        fallback.filter((asset) => !primarySlots.has(asset.slotKey))
+    );
+
+    return {
+        primary: [...primary].sort(
+            (left, right) => left.sortOrder - right.sortOrder
+        ),
+        upstream: [...upstream].sort(
+            (left, right) => left.sortOrder - right.sortOrder
+        ),
+    };
+}
+
+/** @deprecated Use partitionCommonDesktopReleaseAssets for separate UI sections. */
 export function mergeCommonDesktopReleaseAssets(
     primary: readonly DesktopReleaseAssetView[],
     fallback: readonly DesktopReleaseAssetView[]
 ): DesktopReleaseAssetView[] {
-    const merged = new Map(primary.map((asset) => [asset.slotKey, asset]));
+    const { primary: primaryAssets, upstream } =
+        partitionCommonDesktopReleaseAssets(primary, fallback);
 
-    for (const asset of fallback) {
-        if (!merged.has(asset.slotKey)) {
-            merged.set(asset.slotKey, {
-                ...asset,
-                isUpstreamFallback: true,
-                sublabel: asset.sublabel.includes('IPTVnator upstream')
-                    ? asset.sublabel
-                    : `${asset.sublabel}${asset.sublabel ? ' · ' : ''}IPTVnator upstream`,
-            });
-        }
-    }
-
-    return [...merged.values()].sort(
+    return [...primaryAssets, ...upstream].sort(
         (left, right) => left.sortOrder - right.sortOrder
     );
+}
+
+export function buildGitHubLatestReleasePageUrl(githubRepo: string): string {
+    const normalizedRepo = githubRepo.trim().replace(/^\/+|\/+$/g, '');
+    return `https://github.com/${normalizedRepo}/releases/latest`;
 }
 
 export function buildStaticDesktopDownloadCards(
