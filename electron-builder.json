@@ -129,10 +129,11 @@
                 "arch": ["x64", "ia32"]
             }
         ],
-        "artifactName": "${name}-${version}-windows-${arch}-setup.${ext}",
+        "artifactName": "${name}-${version}-windows-${arch}-quick-setup.${ext}",
         "icon": "apps/web/src/assets/icons/icon.png"
     },
     "nsis": {
-        "artifactName": "${name}-${version}-windows-${arch}-setup.${ext}"
+        "oneClick": true,
+        "artifactName": "${name}-${version}-windows-${arch}-quick-setup.${ext}"
     }
 }

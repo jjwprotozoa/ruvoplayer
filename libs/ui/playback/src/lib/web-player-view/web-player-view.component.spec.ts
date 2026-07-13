@@ -271,6 +271,27 @@ describe('WebPlayerViewComponent', () => {
         expect(component.canShowPwaExternalPlayerActions()).toBe(true);
     });
 
+    it('prefers explicit external stream URLs over proxied browser playback URLs', () => {
+        const proxiedUrl =
+            'https://ruvoplayer-api.vercel.app/stream-proxy?url=' +
+            encodeURIComponent(
+                'http://cf.ruvoplay.cc/movie/user/pass/2067165.m3u8'
+            );
+        const externalUrl =
+            'http://cf.ruvoplay.cc/movie/user/pass/2067165.mkv';
+
+        fixture.componentRef.setInput('playback', {
+            streamUrl: proxiedUrl,
+            externalStreamUrl: externalUrl,
+            title: 'Movie',
+        });
+        fixture.detectChanges();
+        component.handlePlaybackIssue(createStreamUnavailableDiagnostic());
+        fixture.detectChanges();
+
+        expect(component.externalStreamUrl()).toBe(externalUrl);
+    });
+
     it('does not preemptively block mkv streams in PWA mode', () => {
         fixture.componentRef.setInput(
             'streamUrl',

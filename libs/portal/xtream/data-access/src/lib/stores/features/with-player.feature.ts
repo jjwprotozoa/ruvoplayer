@@ -135,6 +135,20 @@ export function withPlayer() {
                     return streamUrl;
                 },
 
+                constructVodExternalStreamUrl(
+                    vodItem: XtreamVodDetails
+                ): string {
+                    const credentials = getCredentialsFromStore();
+                    if (!credentials) {
+                        return '';
+                    }
+
+                    return urlService.constructVodExternalUrl(
+                        credentials,
+                        vodItem
+                    );
+                },
+
                 /**
                  * Construct and return series episode stream URL
                  */
@@ -150,6 +164,20 @@ export function withPlayer() {
                     );
                     patchState(store, { streamUrl });
                     return streamUrl;
+                },
+
+                constructEpisodeExternalStreamUrl(
+                    episode: XtreamSerieEpisode
+                ): string {
+                    const credentials = getCredentialsFromStore();
+                    if (!credentials) {
+                        return '';
+                    }
+
+                    return urlService.constructEpisodeExternalUrl(
+                        credentials,
+                        episode
+                    );
                 },
 
                 /**

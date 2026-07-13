@@ -176,6 +176,18 @@ export function buildVlcLaunchUrl(streamUrl: string): string {
     return `vlc://${streamUrl}`;
 }
 
+export function resolveExternalPlaybackStreamUrl(
+    streamUrl: string,
+    externalStreamUrl?: string
+): string {
+    const directUrl = externalStreamUrl?.trim();
+    if (directUrl) {
+        return directUrl;
+    }
+
+    return unwrapProxiedStreamUrl(streamUrl);
+}
+
 /**
  * Build IINA launch URL for macOS. IINA is a popular media player on macOS
  * that reliably registers the `iina://` protocol.

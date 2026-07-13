@@ -10,6 +10,7 @@ import {
     getPlaybackMediaExtensionFromUrl,
     isBrowserInlineUnsupportedStreamUrl,
     isMixedContentStreamUrl,
+    resolveExternalPlaybackStreamUrl,
     resolvePlaybackMimeType,
 } from './playback-diagnostics.util';
 
@@ -507,6 +508,30 @@ describe('playback diagnostics', () => {
         expect(
             buildVlcLaunchUrl('http://ruvoplay.org/live/user/pass/101.ts')
         ).toBe('vlc://http://ruvoplay.org/live/user/pass/101.ts');
+    });
+
+    it('prefers explicit external stream URLs over proxied browser URLs', () => {
+        const proxiedUrl =
+            'https://ruvoplayer-api.vercel.app/stream-proxy?url=' +
+            encodeURIComponent(
+                'http://cf.ruvoplay.cc/movie/user/pass/2067165.m3u8'
+            );
+
+        expect(
+            resolveExternalPlaybackStreamUrl(
+                proxiedUrl,
+                'http://cf.ruvoplay.cc/movie/user/pass/2067165.mkv'
+            )
+        ).toBe('http://cf.ruvoplay.cc/movie/user/pass/2067165.mkv');
+    });
+
+    it('unwraps proxied stream URLs when no explicit external URL is provided', () => {
+        const rawUrl = 'http://cf.ruvoplay.cc/movie/user/pass/2067165.mkv';
+        const proxiedUrl =
+            'https://ruvoplayer-api.vercel.app/stream-proxy?url=' +
+            encodeURIComponent(rawUrl);
+
+        expect(resolveExternalPlaybackStreamUrl(proxiedUrl)).toBe(rawUrl);
     });
 
     it('detects mixed-content HTTP streams on HTTPS pages', () => {

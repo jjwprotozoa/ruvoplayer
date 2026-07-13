@@ -45,15 +45,38 @@ const COMMON_RELEASE_SLOTS = [
             names.find((name) => /-mac-x64\.dmg$/i.test(name)),
     },
     {
-        slotKey: 'windows',
+        slotKey: 'windows-quick',
         pick: (names: readonly string[]) =>
             names.find(
                 (name) =>
-                    /-windows-x64.*\.exe$/i.test(name) && !/ia32/i.test(name)
+                    /-windows-x64-quick-setup\.exe$/i.test(name) &&
+                    !/ia32/i.test(name)
             ) ??
             names.find(
                 (name) =>
-                    /-windows-setup\.exe$/i.test(name) && !/ia32/i.test(name)
+                    /-windows-setup\.exe$/i.test(name) &&
+                    !/ia32/i.test(name) &&
+                    !/custom-setup/i.test(name)
+            ) ??
+            names.find(
+                (name) =>
+                    /-windows-x64.*-setup\.exe$/i.test(name) &&
+                    !/ia32/i.test(name) &&
+                    !/custom-setup/i.test(name)
+            ),
+    },
+    {
+        slotKey: 'windows-custom',
+        pick: (names: readonly string[]) =>
+            names.find(
+                (name) =>
+                    /-windows-x64-custom-setup\.exe$/i.test(name) &&
+                    !/ia32/i.test(name)
+            ) ??
+            names.find(
+                (name) =>
+                    /-windows-.*-custom-setup\.exe$/i.test(name) &&
+                    !/ia32/i.test(name)
             ),
     },
     {
@@ -110,20 +133,27 @@ function describeWindowsAsset(
 } {
     const isArm = /-arm64/i.test(name);
     const isX64 = /-x64/i.test(name) || /x86_64/i.test(name);
+    const isCustom = /-custom-setup\.exe$/i.test(name);
+    const isQuick =
+        /-quick-setup\.exe$/i.test(name) ||
+        (/-setup\.exe$/i.test(name) && !isCustom);
     const isGeneric =
         /-windows-setup\.exe$/i.test(name) && !isX64 && !/ia32/i.test(name);
 
+    const installMode = isCustom
+        ? 'Choose location'
+        : isQuick || isGeneric
+          ? 'Quick install'
+          : 'Installer';
+
     return {
-        label: 'Windows',
+        label: isCustom ? 'Windows (Choose location)' : 'Windows (Quick install)',
         platformKey: 'windows',
         icon: 'desktop_windows',
-        sortOrder: PLATFORM_SORT_ORDER.windows,
+        sortOrder:
+            PLATFORM_SORT_ORDER.windows + (isCustom ? 0.05 : 0),
         details: [
-            name.endsWith('.exe')
-                ? 'Installer'
-                : name.endsWith('.msi')
-                  ? 'MSI'
-                  : 'ZIP',
+            installMode,
             isArm ? 'arm64' : isX64 ? 'x64' : isGeneric ? '64-bit' : '',
         ].filter(Boolean),
     };
@@ -308,13 +338,23 @@ export function buildStaticDesktopDownloadCards(
             fileName: '',
         },
         {
-            label: 'Windows',
-            sublabel: '64-bit installer',
+            label: 'Windows (Quick install)',
+            sublabel: 'One-click installer',
             href: releasesUrl,
             platformKey: 'windows',
             icon: 'desktop_windows',
             sortOrder: PLATFORM_SORT_ORDER.windows,
-            slotKey: 'windows-static',
+            slotKey: 'windows-quick-static',
+            fileName: '',
+        },
+        {
+            label: 'Windows (Choose location)',
+            sublabel: 'Installer wizard with custom folder',
+            href: releasesUrl,
+            platformKey: 'windows',
+            icon: 'desktop_windows',
+            sortOrder: PLATFORM_SORT_ORDER.windows + 0.05,
+            slotKey: 'windows-custom-static',
             fileName: '',
         },
         {

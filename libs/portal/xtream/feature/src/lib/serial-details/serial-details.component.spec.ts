@@ -95,6 +95,7 @@ describe('SerialDetailsComponent', () => {
     const fetchSerialDetailsWithMetadata = jest.fn();
     const checkFavoriteStatus = jest.fn();
     const constructEpisodeStreamUrl = jest.fn();
+    const constructEpisodeExternalStreamUrl = jest.fn();
     const addRecentItem = jest.fn();
     const openResolvedPlayback = jest.fn();
     const isEmbeddedPlayer = jest.fn();
@@ -145,6 +146,11 @@ describe('SerialDetailsComponent', () => {
             (episode: { id: string | number }) =>
                 `http://xtream.example/series/${episode.id}.mp4`
         );
+        constructEpisodeExternalStreamUrl.mockReset();
+        constructEpisodeExternalStreamUrl.mockImplementation(
+            (episode: { id: string | number }) =>
+                `http://xtream.example/series/${episode.id}.mp4`
+        );
         addRecentItem.mockClear();
         openResolvedPlayback.mockClear();
         isEmbeddedPlayer.mockReset();
@@ -182,6 +188,7 @@ describe('SerialDetailsComponent', () => {
                         ),
                         toggleFavorite: jest.fn(),
                         constructEpisodeStreamUrl,
+                        constructEpisodeExternalStreamUrl,
                         addRecentItem,
                         backfillContentBackdrop: jest.fn(),
                     },

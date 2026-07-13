@@ -190,6 +190,48 @@ describe('XtreamUrlService', () => {
         expect(url).toBe('http://demo.example/movie/demo/secret/101.mp4');
     });
 
+    it('builds direct external VOD URLs with the original container extension', () => {
+        runtimeCapabilities.isPwa = true;
+        runtimeCapabilities.isElectron = false;
+
+        const vodItem: XtreamVodDetails = {
+            movie_data: {
+                added: '',
+                category_id: '',
+                container_extension: 'mkv',
+                custom_sid: null,
+                direct_source: '',
+                name: 'Movie',
+                stream_id: 101,
+            },
+        };
+
+        expect(service.constructVodExternalUrl(credentials, vodItem)).toBe(
+            'http://demo.example/movie/demo/secret/101.mkv'
+        );
+    });
+
+    it('builds direct external episode URLs with the original container extension', () => {
+        runtimeCapabilities.isPwa = true;
+        runtimeCapabilities.isElectron = false;
+
+        const episode: XtreamSerieEpisode = {
+            added: '',
+            container_extension: 'mkv',
+            custom_sid: '',
+            direct_source: '',
+            episode_num: 1,
+            id: '202',
+            info: [],
+            season: 1,
+            title: 'Episode',
+        };
+
+        expect(service.constructEpisodeExternalUrl(credentials, episode)).toBe(
+            'http://demo.example/series/demo/secret/202.mkv'
+        );
+    });
+
     it('detects the legacy catchup scheme once and then uses the cached result', async () => {
         const xtreamProbeUrl = jest
             .fn()

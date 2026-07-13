@@ -6,6 +6,8 @@ import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { buildWindowsCustomInstallerConfig } from './build-windows-custom-installer.mjs';
+
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const packageMetadata = JSON.parse(
@@ -458,4 +460,23 @@ test('embedded MPV package validation rejects bundled Linux libmpv', () => {
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
+});
+
+test('electron-builder quick Windows installer uses one-click setup naming', () => {
+    assert.equal(electronBuilderConfig.nsis?.oneClick, true);
+    assert.equal(
+        electronBuilderConfig.nsis?.artifactName,
+        '${name}-${version}-windows-${arch}-quick-setup.${ext}'
+    );
+});
+
+test('Windows custom installer config enables directory selection', () => {
+    const config = buildWindowsCustomInstallerConfig(electronBuilderConfig);
+
+    assert.equal(config.nsis.oneClick, false);
+    assert.equal(config.nsis.allowToChangeInstallationDirectory, true);
+    assert.equal(
+        config.nsis.artifactName,
+        '${name}-${version}-windows-${arch}-custom-setup.${ext}'
+    );
 });

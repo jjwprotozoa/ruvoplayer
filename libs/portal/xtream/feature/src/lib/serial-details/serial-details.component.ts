@@ -278,6 +278,8 @@ export class SerialDetailsComponent implements OnInit, OnDestroy {
         this.addToRecentlyViewed(this.route.snapshot.params.serialId);
 
         const streamUrl = this.xtreamStore.constructEpisodeStreamUrl(episode);
+        const externalStreamUrl =
+            this.xtreamStore.constructEpisodeExternalStreamUrl(episode);
         const contentInfo: PlayerContentInfo = {
             playlistId: playlist.id,
             contentXtreamId: Number(episode.id),
@@ -293,6 +295,7 @@ export class SerialDetailsComponent implements OnInit, OnDestroy {
 
         const playback: ResolvedPortalPlayback = {
             streamUrl,
+            externalStreamUrl,
             title: episode.title,
             thumbnail: selectedItem.info.cover,
             startTime: position?.positionSeconds,

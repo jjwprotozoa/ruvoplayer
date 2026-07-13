@@ -123,6 +123,29 @@ export class XtreamUrlService {
     }
 
     /**
+     * Construct a direct VOD URL for external players (VLC, IINA).
+     * Uses the provider's original container extension and skips the stream proxy.
+     */
+    constructVodExternalUrl(
+        credentials: XtreamCredentials,
+        vodItem: XtreamVodDetails
+    ): string {
+        const vod = vodItem as XtreamVodStreamLike;
+        const streamId = vod.movie_data?.stream_id ?? vod.stream_id;
+        const containerExtension = vodItem.movie_data?.container_extension;
+        if (!streamId || !containerExtension) {
+            return '';
+        }
+
+        return this.constructDirectStreamUrl(
+            credentials,
+            'movie',
+            streamId,
+            containerExtension
+        );
+    }
+
+    /**
      * Construct series episode stream URL
      * Format: {serverUrl}/series/{username}/{password}/{episodeId}.{extension}
      * In PWA mode, MKV/AVI containers are converted to m3u8 (HLS) since browsers
@@ -143,6 +166,22 @@ export class XtreamUrlService {
         );
         const rawUrl = `${normalizedCredentials.serverUrl}/series/${normalizedCredentials.username}/${normalizedCredentials.password}/${episode.id}.${extension}`;
         return this.runtime.wrapStreamUrlForProxy(rawUrl);
+    }
+
+    /**
+     * Construct a direct series episode URL for external players (VLC, IINA).
+     * Uses the provider's original container extension and skips the stream proxy.
+     */
+    constructEpisodeExternalUrl(
+        credentials: XtreamCredentials,
+        episode: XtreamSerieEpisode
+    ): string {
+        return this.constructDirectStreamUrl(
+            credentials,
+            'series',
+            episode.id,
+            episode.container_extension
+        );
     }
 
     constructCatchupUrl(
@@ -370,6 +409,25 @@ export class XtreamUrlService {
      * m3u8 (HLS) when running in PWA mode. Most Xtream servers support serving
      * VOD and series content as HLS when the extension is changed.
      */
+    private constructDirectStreamUrl(
+        credentials: XtreamCredentials,
+        contentType: 'movie' | 'series',
+        streamId: number | string,
+        containerExtension: string
+    ): string {
+        const normalizedCredentials = this.normalizeCredentials(credentials);
+        if (!normalizedCredentials) {
+            return '';
+        }
+
+        const extension = containerExtension.trim().toLowerCase();
+        if (!extension) {
+            return '';
+        }
+
+        return `${normalizedCredentials.serverUrl}/${contentType}/${normalizedCredentials.username}/${normalizedCredentials.password}/${streamId}.${extension}`;
+    }
+
     private resolvePwaPlaybackExtension(containerExtension: string): string {
         const normalized = containerExtension.trim().toLowerCase();
         if (!this.runtime.isPwa) {

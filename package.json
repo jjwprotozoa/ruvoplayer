@@ -52,6 +52,7 @@
         "serve:backend:embedded-mpv": "pnpm embedded-mpv:build-native:homebrew && IPTVNATOR_EMBEDDED_MPV_ALLOW_HOMEBREW=1 IPTVNATOR_ENABLE_EMBEDDED_MPV_EXPERIMENT=1 pnpm serve:backend",
         "package:app": "nx run electron-backend:make --prepackageOnly",
         "make:app": "nx run electron-backend:make",
+        "make:app:windows-custom-installer": "node tools/packaging/build-windows-custom-installer.mjs",
         "sign:macos-adhoc": "node tools/packaging/adhoc-sign-macos-app.mjs",
         "smoke:packaged": "node tools/testing/launch-packaged-electron.mjs",
         "serve:website": "nx serve website",

@@ -75,7 +75,12 @@ describe('SettingsAboutSectionComponent', () => {
         ).toBeTruthy();
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download-windows-static"]'
+                '[data-test-id="link-desktop-download-windows-quick-static"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-windows-custom-static"]'
             )
         ).toBeTruthy();
         expect(
@@ -100,10 +105,16 @@ describe('SettingsAboutSectionComponent', () => {
             ],
             [
                 {
-                    name: 'iptvnator-0.21.0-windows-x64-setup.exe',
+                    name: 'iptvnator-0.21.0-windows-x64-quick-setup.exe',
                     browser_download_url:
-                        'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-setup.exe',
+                        'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-quick-setup.exe',
                     size: 95_000_000,
+                },
+                {
+                    name: 'iptvnator-0.21.0-windows-x64-custom-setup.exe',
+                    browser_download_url:
+                        'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-custom-setup.exe',
+                    size: 96_000_000,
                 },
             ]
         );
@@ -111,15 +122,20 @@ describe('SettingsAboutSectionComponent', () => {
         const macLink = fixture.nativeElement.querySelector(
             '[data-test-id="link-desktop-download-mac-arm64"]'
         ) as HTMLAnchorElement | null;
-        const windowsLink = fixture.nativeElement.querySelector(
-            '[data-test-id="link-desktop-download-windows"]'
+        const windowsQuickLink = fixture.nativeElement.querySelector(
+            '[data-test-id="link-desktop-download-windows-quick"]'
+        ) as HTMLAnchorElement | null;
+        const windowsCustomLink = fixture.nativeElement.querySelector(
+            '[data-test-id="link-desktop-download-windows-custom"]'
         ) as HTMLAnchorElement | null;
 
         expect(macLink).toBeTruthy();
         expect(macLink?.textContent).toContain('macOS (Apple Silicon)');
-        expect(windowsLink).toBeTruthy();
-        expect(windowsLink?.textContent).toContain('Windows');
-        expect(windowsLink?.textContent).toContain('IPTVnator upstream');
+        expect(windowsQuickLink).toBeTruthy();
+        expect(windowsQuickLink?.textContent).toContain('Windows (Quick install)');
+        expect(windowsQuickLink?.textContent).toContain('IPTVnator upstream');
+        expect(windowsCustomLink).toBeTruthy();
+        expect(windowsCustomLink?.textContent).toContain('Windows (Choose location)');
     });
 
     it('keeps static desktop cards when release assets are unavailable', () => {
@@ -139,7 +155,12 @@ describe('SettingsAboutSectionComponent', () => {
 
         expect(
             fixture.nativeElement.querySelector(
-                '[data-test-id="link-desktop-download-windows-static"]'
+                '[data-test-id="link-desktop-download-windows-quick-static"]'
+            )
+        ).toBeTruthy();
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-test-id="link-desktop-download-windows-custom-static"]'
             )
         ).toBeTruthy();
         expect(

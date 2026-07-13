@@ -44,6 +44,9 @@ describe('VodDetailsRouteComponent', () => {
     const constructVodStreamUrl = jest
         .fn()
         .mockReturnValue('http://example.com/movie/650020.mp4');
+    const constructVodExternalStreamUrl = jest
+        .fn()
+        .mockReturnValue('http://example.com/movie/650020.mp4');
     const addRecentItem = jest.fn();
     const downloads = signal([]);
     const getPlaybackPosition = jest.fn().mockResolvedValue(null);
@@ -85,6 +88,7 @@ describe('VodDetailsRouteComponent', () => {
         setSelectedItem.mockClear();
         toggleFavorite.mockClear();
         constructVodStreamUrl.mockClear();
+        constructVodExternalStreamUrl.mockClear();
         addRecentItem.mockClear();
         getPlaybackPosition.mockClear();
 
@@ -130,6 +134,7 @@ describe('VodDetailsRouteComponent', () => {
                         setSelectedItem,
                         toggleFavorite,
                         constructVodStreamUrl,
+                        constructVodExternalStreamUrl,
                         addRecentItem,
                     },
                 },

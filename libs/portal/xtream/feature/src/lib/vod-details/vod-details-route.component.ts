@@ -367,6 +367,8 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
         const info = getXtreamVodInfo(vodItem);
         this.addToRecentlyViewed();
         const streamUrl = this.xtreamStore.constructVodStreamUrl(vodItem);
+        const externalStreamUrl =
+            this.xtreamStore.constructVodExternalStreamUrl(vodItem);
         const routeVodId = this.route.snapshot.params.vodId;
         const id = routeVodId
             ? Number(routeVodId)
@@ -384,6 +386,7 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
         };
         const playback: ResolvedPortalPlayback = {
             streamUrl,
+            externalStreamUrl,
             title: info?.name ?? vodItem.movie_data?.name ?? 'Unknown',
             thumbnail: info?.movie_image,
             contentInfo,
@@ -407,6 +410,8 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
         const vodId = Number(this.route.snapshot.params.vodId);
         const position = this.vodPlaybackPosition();
         const streamUrl = this.xtreamStore.constructVodStreamUrl(vodItem);
+        const externalStreamUrl =
+            this.xtreamStore.constructVodExternalStreamUrl(vodItem);
 
         const contentInfo: PlayerContentInfo = {
             playlistId: playlist.id,
@@ -415,6 +420,7 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
         };
         const playback: ResolvedPortalPlayback = {
             streamUrl,
+            externalStreamUrl,
             title: info?.name ?? vodItem.movie_data?.name ?? 'Unknown',
             thumbnail: info?.movie_image,
             startTime: position?.positionSeconds,
@@ -533,6 +539,8 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
 
         const info = getXtreamVodInfo(vodItem);
         const streamUrl = this.xtreamStore.constructVodStreamUrl(vodItem);
+        const externalStreamUrl =
+            this.xtreamStore.constructVodExternalStreamUrl(vodItem);
         const routeVodId = this.route.snapshot.params.vodId;
         const id = routeVodId
             ? Number(routeVodId)
@@ -551,7 +559,7 @@ export class VodDetailsRouteComponent implements OnInit, OnDestroy {
             xtreamId: id,
             contentType: 'vod',
             title: info?.name ?? vodItem.movie_data?.name ?? 'Unknown',
-            url: streamUrl,
+            url: externalStreamUrl || streamUrl,
             posterUrl: info?.movie_image,
             headers: {
                 userAgent: playlist.userAgent,

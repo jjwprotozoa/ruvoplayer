@@ -9,6 +9,8 @@ export interface PlayerContentInfo extends Omit<
 
 export interface ResolvedPortalPlayback {
     streamUrl: string;
+    /** Direct provider URL for external players (VLC/IINA) and copy actions. */
+    externalStreamUrl?: string;
     title: string;
     thumbnail?: string | null;
     isLive?: boolean;

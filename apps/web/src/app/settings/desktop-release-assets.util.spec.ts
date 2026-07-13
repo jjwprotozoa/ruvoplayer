@@ -20,7 +20,8 @@ describe('desktop-release-assets.util', () => {
 
         expect(cards.map((card) => card.slotKey)).toEqual([
             'mac-static',
-            'windows-static',
+            'windows-quick-static',
+            'windows-custom-static',
             'linux-static',
         ]);
         expect(cards.every((card) => card.href.includes('/releases/latest'))).toBe(
@@ -47,6 +48,38 @@ describe('desktop-release-assets.util', () => {
 
         expect(
             describeDesktopReleaseAsset({
+                name: 'iptvnator-0.21.0-windows-x64-quick-setup.exe',
+                browser_download_url:
+                    'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-quick-setup.exe',
+                size: 95_000_000,
+            })
+        ).toEqual(
+            expect.objectContaining({
+                label: 'Windows (Quick install)',
+                sublabel: 'Quick install · x64 · 91 MB',
+                platformKey: 'windows',
+                icon: 'desktop_windows',
+            })
+        );
+
+        expect(
+            describeDesktopReleaseAsset({
+                name: 'iptvnator-0.21.0-windows-x64-custom-setup.exe',
+                browser_download_url:
+                    'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-custom-setup.exe',
+                size: 96_000_000,
+            })
+        ).toEqual(
+            expect.objectContaining({
+                label: 'Windows (Choose location)',
+                sublabel: 'Choose location · x64 · 92 MB',
+                platformKey: 'windows',
+                icon: 'desktop_windows',
+            })
+        );
+
+        expect(
+            describeDesktopReleaseAsset({
                 name: 'iptvnator-0.21.0-windows-x64-setup.exe',
                 browser_download_url:
                     'https://github.com/4gray/iptvnator/releases/download/v0.21.0/iptvnator-0.21.0-windows-x64-setup.exe',
@@ -54,8 +87,8 @@ describe('desktop-release-assets.util', () => {
             })
         ).toEqual(
             expect.objectContaining({
-                label: 'Windows',
-                sublabel: 'Installer · x64 · 91 MB',
+                label: 'Windows (Quick install)',
+                sublabel: 'Quick install · x64 · 91 MB',
                 platformKey: 'windows',
                 icon: 'desktop_windows',
             })
@@ -96,8 +129,18 @@ describe('desktop-release-assets.util', () => {
                 size: 1,
             },
             {
+                name: 'iptvnator-0.21.0-windows-x64-custom-setup.exe',
+                browser_download_url: 'https://example.com/windows-custom',
+                size: 1,
+            },
+            {
+                name: 'iptvnator-0.21.0-windows-x64-quick-setup.exe',
+                browser_download_url: 'https://example.com/windows-quick',
+                size: 1,
+            },
+            {
                 name: 'iptvnator-0.21.0-windows-x64-setup.exe',
-                browser_download_url: 'https://example.com/windows',
+                browser_download_url: 'https://example.com/windows-legacy',
                 size: 1,
             },
             {
@@ -120,9 +163,16 @@ describe('desktop-release-assets.util', () => {
         expect(assets.map((asset) => asset.slotKey)).toEqual([
             'mac-arm64',
             'mac-x64',
-            'windows',
+            'windows-quick',
+            'windows-custom',
             'linux',
         ]);
+        expect(
+            assets.find((asset) => asset.slotKey === 'windows-quick')?.href
+        ).toBe('https://example.com/windows-quick');
+        expect(
+            assets.find((asset) => asset.slotKey === 'windows-custom')?.href
+        ).toBe('https://example.com/windows-custom');
         expect(assets.find((asset) => asset.slotKey === 'linux')?.href).toBe(
             'https://example.com/linux-appimage'
         );
@@ -153,10 +203,10 @@ describe('desktop-release-assets.util', () => {
 
         expect(merged.map((asset) => asset.slotKey)).toEqual([
             'mac-arm64',
-            'windows',
+            'windows-quick',
             'linux',
         ]);
-        expect(merged.find((asset) => asset.slotKey === 'windows')).toEqual(
+        expect(merged.find((asset) => asset.slotKey === 'windows-quick')).toEqual(
             expect.objectContaining({
                 isUpstreamFallback: true,
                 sublabel: expect.stringContaining('IPTVnator upstream'),

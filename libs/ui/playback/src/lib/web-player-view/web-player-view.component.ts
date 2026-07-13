@@ -39,6 +39,7 @@ import {
     getLikelyBrowserUnsupportedCodecLabels,
     getPlaybackMediaExtensionFromUrl,
     isMacPlatform,
+    resolveExternalPlaybackStreamUrl,
     resolvePlaybackMimeType,
     unwrapProxiedStreamUrl,
 } from '../playback-diagnostics/playback-diagnostics.util';
@@ -130,7 +131,10 @@ export class WebPlayerViewComponent {
         );
     });
     readonly externalStreamUrl = computed(() =>
-        unwrapProxiedStreamUrl(this.resolvedPlayback().streamUrl)
+        resolveExternalPlaybackStreamUrl(
+            this.resolvedPlayback().streamUrl,
+            this.resolvedPlayback().externalStreamUrl
+        )
     );
     readonly isMacPlatform = computed(() => isMacPlatform());
     readonly diagnosticHeadlineKey = computed(() =>

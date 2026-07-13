@@ -39,6 +39,7 @@ export {
     getPlaybackMediaExtensionFromUrl,
     isBrowserInlineUnsupportedStreamUrl,
     isMacPlatform,
+    resolveExternalPlaybackStreamUrl,
     resolvePlaybackMimeType,
     unwrapProxiedStreamUrl,
     type ExternalPlayerLaunchUrls,

@@ -552,6 +552,11 @@ jobs:
                   CSC_IDENTITY_AUTO_DISCOVERY: ${{ matrix.os == 'macos' && github.repository != '4gray/iptvnator' && 'false' || '' }}
               run: pnpm run make:app
 
+            - name: Build Windows custom installer
+              if: matrix.os == 'windows'
+              shell: bash
+              run: pnpm run make:app:windows-custom-installer
+
             - name: Ad-hoc sign macOS app (RuvoPlayer fork)
               if: matrix.os == 'macos' && github.event_name != 'pull_request' && github.repository != '4gray/iptvnator'
               run: node tools/packaging/adhoc-sign-macos-app.mjs dist/executables
