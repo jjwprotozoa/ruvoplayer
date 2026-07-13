@@ -114,8 +114,9 @@ Repeat for the backup URL.
 
 ## Playback notes
 
-- **MKV/VOD**: Browsers cannot decode MKV inline. The PWA skips proxying MKV
-  and shows **Open in VLC** with the direct provider URL.
+- **MKV/VOD**: Proxied over HTTPS and played with ArtPlayer in PWA mode. If the
+  browser still cannot decode the container (common in Chrome), use **Open in VLC**
+  with the direct provider URL.
 - **Live HLS**: Prefer `m3u8` output in portal settings when available.
 - **HTTP 458** from providers: Often geo/IP blocking on datacenter IPs (Vercel).
   VLC from the user's home network may still work.
