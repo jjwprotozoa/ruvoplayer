@@ -77,4 +77,33 @@ describe('PwaService', () => {
 
         expect(http.match(() => true)).toHaveLength(0);
     });
+
+    it('re-registers provider targets when a legacy SHA256 targetId is cached', async () => {
+        const providerUrl = 'http://ruvoplay.org';
+        const legacyTargetId =
+            '5ded33190e7b5252ab32146170df145c13c03bfd899e072121c3a0e91d6aa721';
+        const modernTargetId = 'aHR0cDovL3J1dm9wbGF5Lm9yZy8';
+        const getProviderTargetId = (
+            service as unknown as {
+                getProviderTargetId: (
+                    url: string,
+                    backendUrl?: string
+                ) => Promise<string>;
+            }
+        ).getProviderTargetId.bind(service);
+
+        const firstRequest = getProviderTargetId(providerUrl);
+        const firstRegistration = http.expectOne(
+            'https://ruvoplayer-api.vercel.app/provider-targets'
+        );
+        firstRegistration.flush({ targetId: legacyTargetId });
+        await expect(firstRequest).resolves.toBe(legacyTargetId);
+
+        const secondRequest = getProviderTargetId(providerUrl);
+        const secondRegistration = http.expectOne(
+            'https://ruvoplayer-api.vercel.app/provider-targets'
+        );
+        secondRegistration.flush({ targetId: modernTargetId });
+        await expect(secondRequest).resolves.toBe(modernTargetId);
+    });
 });

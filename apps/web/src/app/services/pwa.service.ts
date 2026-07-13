@@ -620,7 +620,13 @@ export class PwaService extends DataService {
         const cacheKey = `${backendUrl}|${url}`;
         const cachedTargetId = this.providerTargetIds.get(cacheKey);
         if (cachedTargetId) {
-            return cachedTargetId;
+            return cachedTargetId.then((targetId) => {
+                if (this.isLegacySha256ProviderTargetId(targetId)) {
+                    this.providerTargetIds.delete(cacheKey);
+                    return this.getProviderTargetId(url, backendUrl);
+                }
+                return targetId;
+            });
         }
 
         const targetIdRequest = firstValueFrom(
@@ -641,6 +647,10 @@ export class PwaService extends DataService {
 
         this.providerTargetIds.set(cacheKey, targetIdRequest);
         return targetIdRequest;
+    }
+
+    private isLegacySha256ProviderTargetId(targetId: string): boolean {
+        return /^[a-f0-9]{64}$/i.test(targetId);
     }
 
     removeAllListeners(type: string): void {
