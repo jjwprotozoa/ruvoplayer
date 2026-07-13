@@ -527,14 +527,25 @@ describe('RuntimeCapabilitiesService', () => {
             );
         });
 
-        it('does not proxy MKV and other browser-unsupported containers in PWA mode', () => {
+        it('proxies mkv streams in PWA mode', () => {
             testWindow.electron = undefined;
 
             const service = new RuntimeCapabilitiesService();
             const mkvUrl =
                 'http://ruvoplay.org/movie/20df70bc9647/2f18e3dd74/1977622.mkv';
 
-            expect(service.wrapStreamUrlForProxy(mkvUrl)).toBe(mkvUrl);
+            expect(service.wrapStreamUrlForProxy(mkvUrl)).toBe(
+                '/api/stream-proxy?url=' + encodeURIComponent(mkvUrl)
+            );
+        });
+
+        it('does not proxy avi and other external-player-only containers in PWA mode', () => {
+            testWindow.electron = undefined;
+
+            const service = new RuntimeCapabilitiesService();
+            const aviUrl = 'http://ruvoplay.org/movie/user/pass/1977622.avi';
+
+            expect(service.wrapStreamUrlForProxy(aviUrl)).toBe(aviUrl);
         });
 
         it('uses runtime config BACKEND_URL in PWA mode when available', () => {

@@ -268,8 +268,7 @@ export class RuntimeCapabilitiesService {
     /**
      * Wraps a stream URL through the PWA backend proxy to handle CORS.
      * Returns the original URL if running in Electron or when the browser
-     * cannot play the container inline (MKV/AVI/etc.) — those need VLC with
-     * the direct provider URL, not a proxied fetch.
+     * should open the container externally (AVI/WMV/FLV).
      */
     wrapStreamUrlForProxy(streamUrl: string, backendUrl?: string): string {
         if (this.isElectron || this.shouldBypassStreamProxy(streamUrl)) {
@@ -289,7 +288,7 @@ export class RuntimeCapabilitiesService {
             const pathname = new URL(streamUrl).pathname.toLowerCase();
             const extension = pathname.match(/\.([a-z0-9]+)$/)?.[1];
             return extension
-                ? ['mkv', 'avi', 'wmv', 'flv'].includes(extension)
+                ? ['avi', 'wmv', 'flv'].includes(extension)
                 : false;
         } catch {
             return false;

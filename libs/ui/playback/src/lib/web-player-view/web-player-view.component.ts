@@ -148,12 +148,27 @@ export class WebPlayerViewComponent {
             startTime: this.startTime(),
         };
     });
-    readonly selectedPlayer = computed(
-        () =>
-            this.playerOverride() ??
-            this.settings()?.player ??
-            VideoPlayer.VideoJs
-    );
+    readonly selectedPlayer = computed(() => {
+        const override = this.playerOverride();
+        if (override) {
+            return override;
+        }
+
+        const settingsPlayer =
+            this.settings()?.player ?? VideoPlayer.VideoJs;
+        if (!this.runtime.isPwa) {
+            return settingsPlayer;
+        }
+
+        const extension = getPlaybackMediaExtensionFromUrl(
+            this.resolvedPlayback().streamUrl
+        );
+        if (extension === 'mkv') {
+            return VideoPlayer.ArtPlayer;
+        }
+
+        return settingsPlayer;
+    });
     readonly recordingFolder = computed(
         () => this.settings()?.recordingFolder ?? ''
     );

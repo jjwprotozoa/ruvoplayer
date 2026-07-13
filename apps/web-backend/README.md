@@ -23,7 +23,8 @@ Deploy from **this monorepo** (`apps/web-backend`), not the legacy standalone [r
 
 Legacy query param `streamUrl` is also accepted on `/stream-proxy`.
 
-MKV/AVI/WMV/FLV streams are **not** proxied by the PWA client — use **Open in VLC** with the direct provider URL.
+MKV streams are proxied like other HTTP sources. If inline playback still
+fails, use **Open in VLC** with the direct provider URL.
 
 ## Local development
 

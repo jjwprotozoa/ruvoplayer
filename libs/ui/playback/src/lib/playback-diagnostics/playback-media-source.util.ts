@@ -8,7 +8,6 @@ import type {
 const EXTERNAL_PLAYER_ONLY_CONTAINER_EXTENSIONS = new Set([
     'avi',
     'flv',
-    'mkv',
     'wmv',
 ]);
 

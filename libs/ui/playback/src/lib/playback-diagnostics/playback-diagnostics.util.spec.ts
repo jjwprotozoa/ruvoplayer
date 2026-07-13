@@ -531,15 +531,12 @@ describe('playback diagnostics', () => {
         ).toBe(false);
     });
 
-    it('classifies preemptive MKV playback issues', () => {
+    it('does not classify mkv streams as preemptive playback issues', () => {
         const mkvIssue = classifyPreemptivePlaybackIssue(
             'http://ruvoplay.org/movie/user/pass/1977622.mkv',
             'videojs'
         );
 
-        expect(mkvIssue?.code).toBe(
-            PlaybackDiagnosticCode.UnsupportedContainer
-        );
-        expect(mkvIssue?.externalFallbackRecommended).toBe(true);
+        expect(mkvIssue).toBeNull();
     });
 });

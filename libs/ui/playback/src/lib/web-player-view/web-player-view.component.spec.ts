@@ -271,18 +271,15 @@ describe('WebPlayerViewComponent', () => {
         expect(component.canShowPwaExternalPlayerActions()).toBe(true);
     });
 
-    it('shows preemptive MKV diagnostics in PWA without loading inline sources', () => {
+    it('does not preemptively block mkv streams in PWA mode', () => {
         fixture.componentRef.setInput(
             'streamUrl',
             'http://ruvoplay.org/movie/user/pass/1977622.mkv'
         );
         fixture.detectChanges();
 
-        expect(component.playbackDiagnostic()?.code).toBe(
-            PlaybackDiagnosticCode.UnsupportedContainer
-        );
-        expect(component.vjsOptions.sources).toEqual([]);
-        expect(component.canShowPwaExternalPlayerActions()).toBe(true);
+        expect(component.playbackDiagnostic()).toBeNull();
+        expect(component.selectedPlayer()).toBe(VideoPlayer.ArtPlayer);
     });
 
     it('treats web script playback URLs without declared media extension as MPEG-TS', () => {
