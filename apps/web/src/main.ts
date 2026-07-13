@@ -6,12 +6,16 @@ import { AppConfig } from './environments/environment';
 
 registerAppDateLocales();
 
-const runtimeConfig = (globalThis.window?.__IPTVNATOR_CONFIG__ ??= {});
-if (!runtimeConfig.BACKEND_URL?.trim()) {
-    runtimeConfig.BACKEND_URL = AppConfig.BACKEND_URL;
-}
-if (!runtimeConfig.BACKEND_URL_BACKUP?.trim() && AppConfig.BACKEND_URL_BACKUP) {
-    runtimeConfig.BACKEND_URL_BACKUP = AppConfig.BACKEND_URL_BACKUP;
+const runtimeWindow = globalThis.window;
+if (runtimeWindow) {
+    runtimeWindow.__IPTVNATOR_CONFIG__ ??= {};
+    const runtimeConfig = runtimeWindow.__IPTVNATOR_CONFIG__;
+    if (!runtimeConfig.BACKEND_URL?.trim()) {
+        runtimeConfig.BACKEND_URL = AppConfig.BACKEND_URL;
+    }
+    if (!runtimeConfig.BACKEND_URL_BACKUP?.trim() && AppConfig.BACKEND_URL_BACKUP) {
+        runtimeConfig.BACKEND_URL_BACKUP = AppConfig.BACKEND_URL_BACKUP;
+    }
 }
 
 bootstrapApplication(AppComponent, appConfig)

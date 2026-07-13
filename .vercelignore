@@ -1,0 +1,9 @@
+node_modules
+.git
+.nx
+coverage
+dist
+tmp
+.plans
+apps/electron-backend
+apps/electron-backend-e2e
